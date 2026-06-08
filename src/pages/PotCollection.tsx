@@ -1,0 +1,529 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Palette, Flame, Sparkles, BookOpen, Award, ShoppingBag, Clock, CheckCircle2, ChevronRight, Loader } from 'lucide-react';
+import { TetrisGame } from '../components/TetrisGame';
+import { PotMiniGame } from '../components/PotMiniGame';
+
+export interface CustomPot {
+  id: string;
+  name: string;
+  shape: 'classic' | 'modern' | 'octagon';
+  shapeTh: string;
+  color: string;
+  colorName: string;
+  pattern: 'gold-dragon' | 'emerald-dragon' | 'cute-mascot' | 'ancient-wave';
+  patternTh: string;
+  cost?: number;
+}
+
+export interface PotOrder {
+  id: string;
+  pot: CustomPot;
+  cost: number;
+  status: 'pending' | 'accepted' | 'shaping' | 'baking' | 'completed';
+  progress: number;
+}
+
+interface PotCollectionProps {
+  customPots: CustomPot[];
+  onAddCustomPot: (pot: CustomPot) => void;
+  userPoints: number;
+  onAwardPoints: (points: number) => void;
+}
+
+const SHAPES = [
+  { id: 'classic' as const, label: 'ทรงดั้งเดิม 🏺', desc: 'ทรงปากแตรอ้วนระบายน้ำดี' },
+  { id: 'modern' as const, label: 'ทรงโมเดิร์น 📐', desc: 'ทรงกระบอกเรียบหรูสไตล์คาเฟ่' },
+  { id: 'octagon' as const, label: 'ทรงแปดเหลี่ยม 💎', desc: 'แปดเหลี่ยมเสริมฮวงจุ้ย' },
+];
+
+const COLORS = [
+  { id: '#CD853F', name: 'ส้มอิฐโพธาราม', gradient: 'radial-gradient(circle at 30% 30%, #E69A5D, #CD853F)' },
+  { id: '#8E5431', name: 'น้ำตาลดินเผาเข้ม', gradient: 'radial-gradient(circle at 30% 30%, #A86D4A, #8E5431)' },
+  { id: '#F4B41A', name: 'ทองแสงแดดอบอุ่น', gradient: 'radial-gradient(circle at 30% 30%, #F8D360, #F4B41A)' },
+  { id: '#1E5128', name: 'หยกเขียวขจี', gradient: 'radial-gradient(circle at 30% 30%, #357F44, #1E5128)' },
+];
+
+const PATTERNS = [
+  { id: 'gold-dragon' as const, label: 'มังกรทองทะยานฟ้า 🐉', color: '#FFD54F', desc: 'ลวดลายมังกรทองมงคลกวักทรัพย์' },
+  { id: 'emerald-dragon' as const, label: 'มังกรหยกนำโชค 🐲', color: '#81C784', desc: 'ลายมังกรจีนเสริมสุขภาพและความสงบ' },
+  { id: 'cute-mascot' as const, label: 'มังกรน้อยถือไม้เบสบอล ⚾', color: '#FF8A65', desc: 'ลายน้องมังกรน้อยถือไม้เบสบอลน่ารักขี้เล่น' },
+  { id: 'ancient-wave' as const, label: 'คลื่นมงคลโบราณ 🌊', color: '#E0F7FA', desc: 'ลวดลายคลื่นจีนโบราณไหลลื่นไม่สิ้นสุด' },
+];
+
+export const PotCollection: React.FC<PotCollectionProps> = ({
+  customPots,
+  onAddCustomPot,
+  userPoints,
+  onAwardPoints,
+}) => {
+  const [subTab, setSubTab] = useState<'gallery' | 'tetris'>('gallery');
+  const [bakedSuccess, setBakedSuccess] = useState(false);
+  const [lastCost, setLastCost] = useState<number | null>(null);
+  const [orders, setOrders] = useState<PotOrder[]>([]);
+  const designerRef = useRef<HTMLDivElement>(null);
+
+  // Background order processing simulator
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setOrders((prev) => {
+        let changed = false;
+        const next = prev.map((ord) => {
+          if (ord.status === 'completed') return ord;
+          changed = true;
+          const stages: PotOrder['status'][] = ['pending', 'accepted', 'shaping', 'baking', 'completed'];
+          const curIdx = stages.indexOf(ord.status);
+          const nextStatus = stages[curIdx + 1];
+          const nextProgress = Math.min(100, Math.round(((curIdx + 1) / 4) * 100));
+          return {
+            ...ord,
+            status: nextStatus,
+            progress: nextProgress,
+          };
+        });
+        return changed ? next : prev;
+      });
+    }, 4500); // Progress order every 4.5 seconds
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleMiniGameComplete = (newPot: CustomPot, cost: number) => {
+    const newOrder: PotOrder = {
+      id: `order-${Date.now()}`,
+      pot: { ...newPot, cost },
+      cost,
+      status: 'pending',
+      progress: 0,
+    };
+    setOrders((prev) => [newOrder, ...prev]);
+    // Scroll down to active orders smoothly
+    setTimeout(() => {
+      document.getElementById('my-pot-orders')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+  };
+
+  const handleClaimPot = (orderId: string) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) return;
+    onAddCustomPot(order.pot);
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    // Visual indicator of award
+    setLastCost(order.cost);
+    setBakedSuccess(true);
+    setTimeout(() => {
+      setBakedSuccess(false);
+      setLastCost(null);
+    }, 4000);
+  };
+
+  const currentLevel = Math.floor(userPoints / 20) + 1;
+  const nextLevelPoints = currentLevel * 20;
+  const progressPercent = Math.min(100, (userPoints % 20) * 5);
+
+  return (
+    <div 
+      className="tab-page-container"
+      style={{
+        padding: '24px',
+        maxWidth: '680px',
+        margin: '0 auto',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        overflowY: 'auto',
+        maxHeight: 'calc(100vh - 140px)',
+      }}
+    >
+      {/* Title */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Palette size={24} />
+          <span>แกลเลอรีกระถางของฉัน</span>
+        </h2>
+        {!bakedSuccess && (
+          <button 
+            className="premium-btn gamepad-focusable"
+            onClick={() => {
+              setSubTab('gallery');
+              setTimeout(() => {
+                designerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }}
+            style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '13px' }}
+          >
+            <Palette size={16} />
+            <span>ออกแบบกระถาง 🎮</span>
+          </button>
+        )}
+      </div>
+
+      {/* User Level Dashboard */}
+      <div className="glass-panel" style={{ padding: '20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div 
+          style={{
+            width: '54px',
+            height: '54px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, var(--gold-light), var(--gold))',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--primary)',
+            boxShadow: 'var(--glow-gold)'
+          }}
+        >
+          <Award size={26} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontWeight: 700, fontSize: '16px' }}>ช่างปั้นดินเผาเลเวล {currentLevel}</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{userPoints} / {nextLevelPoints} แต้ม</span>
+          </div>
+          <div style={{ height: '8px', background: 'rgba(30,81,40,0.1)', borderRadius: '4px', overflow: 'hidden', marginTop: '6px' }}>
+            <div style={{ width: `${progressPercent}%`, height: '100%', background: 'var(--primary-light)', borderRadius: '4px', transition: 'width 0.5s' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Sub Tab Navigation */}
+      <div 
+        className="view-tab-container"
+        style={{ margin: 0, padding: 4 }}
+      >
+        <button
+          className={`view-tab-btn gamepad-focusable ${subTab === 'gallery' ? 'active' : ''}`}
+          onClick={() => setSubTab('gallery')}
+          style={{ flex: 1, padding: '10px', fontSize: '13px' }}
+        >
+          <Palette size={16} />
+          <span>แกลเลอรี & ออกแบบ</span>
+        </button>
+        <button
+          className={`view-tab-btn gamepad-focusable ${subTab === 'tetris' ? 'active' : ''}`}
+          onClick={() => setSubTab('tetris')}
+          style={{ flex: 1, padding: '10px', fontSize: '13px' }}
+        >
+          <Flame size={16} />
+          <span>เกมตัวต่อดินเผา (Tetris)</span>
+        </button>
+      </div>
+
+      {subTab === 'tetris' ? (
+        <TetrisGame userPoints={userPoints} onAwardPoints={onAwardPoints} />
+      ) : (
+        <>
+          {/* MiniGame Designer */}
+          {bakedSuccess && lastCost !== null ? (
+            <div
+              className="glass-panel"
+              style={{
+                padding: '28px 20px', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', textAlign: 'center', gap: '12px',
+                border: '2px solid var(--primary-light)',
+                animation: 'bounce-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+              }}
+            >
+              <div style={{
+                width: '80px', height: '80px', borderRadius: '50%',
+                background: 'radial-gradient(circle, var(--gold-light), var(--gold))',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: 'var(--glow-gold)'
+              }}>
+                <Flame size={40} style={{ color: 'var(--clay)', animation: 'float 2s ease-in-out infinite' }} />
+              </div>
+              <h4 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary)' }}>อบกระถางเสร็จสมบูรณ์! 🏺</h4>
+              <p style={{ fontSize: '13px', lineHeight: 1.6, color: 'var(--text-dark)' }}>
+                กระถางของคุณถูกบันทึกเรียบร้อยแล้ว 🐉✨
+              </p>
+              <div style={{
+                background: 'linear-gradient(135deg, #FFFDF6, #FFF8EC)',
+                border: '1.5px dashed rgba(200,140,50,0.4)',
+                borderRadius: '14px', padding: '12px 20px',
+                fontSize: '22px', fontWeight: 900, color: 'var(--clay)'
+              }}>
+                ราคารวม: ฿{lastCost.toLocaleString()}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', fontWeight: 700, color: 'var(--clay-light)' }}>
+                <Sparkles size={14} className="star-input-btn active" />
+                <span>แต้มช่างปั้นเพิ่มขึ้น! (+10 แต้ม)</span>
+              </div>
+            </div>
+          ) : (
+            <div ref={designerRef}>
+              <PotMiniGame
+                onComplete={handleMiniGameComplete}
+                onCancel={() => setSubTab('gallery')}
+              />
+            </div>
+          )}
+
+          {/* Active Orders Tracker */}
+          <div id="my-pot-orders" style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '15px', fontWeight: 700, color: 'var(--text-muted)' }}>
+              <ShoppingBag size={16} />
+              <span>ติดตามออร์เดอร์การปั้นกระถาง ({orders.length})</span>
+            </div>
+
+            {orders.length === 0 ? (
+              <div className="glass-panel" style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                ✨ ไม่มีคำสั่งซื้อที่อยู่ระหว่างดำเนินการ ลองแต่งตัวและส่งคำสั่งซื้อกระถางใหม่ด้านบนได้เลย!
+              </div>
+            ) : (
+              orders.map((ord) => {
+                const getStatusStep = () => {
+                  switch (ord.status) {
+                    case 'pending':
+                      return { text: 'ร้านค้ากำลังรับออร์เดอร์...', sub: 'กำลังตรวจสอบรายการและวัตถุดิบดิน', color: '#E65100', icon: <Clock size={16} /> };
+                    case 'accepted':
+                      return { text: 'ร้านค้าเตรียมดินดินเหนียว...', sub: 'นวดเนื้อดินให้เข้ากันและขจัดฟองอากาศ', color: '#0288D1', icon: <Loader size={16} className="spin-animation" /> };
+                    case 'shaping':
+                      return { text: 'ช่างกำลังขึ้นรูปและแกะลาย...', sub: 'ปั้นแต่งรูปทรงบนแป้นและประดับลวดลายตามแบบ', color: '#7B1FA2', icon: <Palette size={16} /> };
+                    case 'baking':
+                      return { text: 'กำลังเผาอบเตาไฟแรง...', sub: 'เผาอุณหภูมิ 1200 องศาเซลเซียสเพื่อความแกร่ง', color: '#D84315', icon: <Flame size={16} style={{ animation: 'bounce 0.8s infinite alternate' }} /> };
+                    case 'completed':
+                      return { text: 'การปั้นเสร็จสมบูรณ์ร้อยเปอร์เซ็นต์!', sub: 'อบแห้ง เคลือบสี และแพ็คลงกล่องพร้อมส่งมอบ', color: '#2E7D32', icon: <CheckCircle2 size={16} /> };
+                  }
+                };
+
+                const step = getStatusStep();
+
+                return (
+                  <div 
+                    key={ord.id} 
+                    className="glass-panel" 
+                    style={{ 
+                      padding: '20px', 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: '12px',
+                      borderLeft: `5px solid ${step.color}`,
+                      animation: 'fade-in 0.4s ease',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <h5 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--primary)' }}>
+                          {ord.pot.name}
+                        </h5>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                          <span>{ord.pot.colorName}</span>
+                          <span>•</span>
+                          <span>{ord.pot.shapeTh}</span>
+                          <span>•</span>
+                          <span style={{ fontWeight: 700, color: 'var(--clay)' }}>฿{ord.cost}</span>
+                        </div>
+                      </div>
+                      <div 
+                        style={{ 
+                          padding: '4px 10px', 
+                          borderRadius: '12px', 
+                          fontSize: '11px', 
+                          fontWeight: 700, 
+                          color: 'white', 
+                          background: step.color,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        {step.icon}
+                        <span>{ord.status.toUpperCase()}</span>
+                      </div>
+                    </div>
+
+                    {/* Progress tracking display */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', margin: '6px 0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700, color: step.color }}>
+                        <span>{step.text}</span>
+                        <span>{ord.progress}%</span>
+                      </div>
+                      <div style={{ height: '6px', background: 'rgba(0,0,0,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div 
+                          style={{ 
+                            width: `${ord.progress}%`, 
+                            height: '100%', 
+                            background: `linear-gradient(90deg, ${step.color}, #81C784)`, 
+                            borderRadius: '3px',
+                            transition: 'width 0.6s ease',
+                          }} 
+                        />
+                      </div>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontStyle: 'italic' }}>{step.sub}</span>
+                    </div>
+
+                    {/* Timeline dot representations */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px 0', borderTop: '1px solid rgba(0,0,0,0.04)', paddingTop: '10px' }}>
+                      {['pending', 'accepted', 'shaping', 'baking', 'completed'].map((st, i) => {
+                        const stages: PotOrder['status'][] = ['pending', 'accepted', 'shaping', 'baking', 'completed'];
+                        const curIdx = stages.indexOf(ord.status);
+                        const isDone = stages.indexOf(st) <= curIdx;
+                        const labelText = ['สั่งซื้อ', 'เตรียมดิน', 'ขึ้นรูป', 'เผาอบ', 'สำเร็จ'][i];
+                        return (
+                          <div key={st} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', flex: 1 }}>
+                            <div 
+                              style={{ 
+                                width: '12px', height: '12px', 
+                                borderRadius: '50%', 
+                                background: isDone ? step.color : '#E0E0E0',
+                                boxShadow: isDone ? `0 0 6px ${step.color}` : 'none',
+                                transition: 'all 0.4s',
+                              }} 
+                            />
+                            <span style={{ fontSize: '9px', fontWeight: isDone ? 700 : 500, color: isDone ? '#2C3E30' : 'var(--text-muted)' }}>
+                              {labelText}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Claim Button once done */}
+                    {ord.status === 'completed' && (
+                      <button 
+                        onClick={() => handleClaimPot(ord.id)}
+                        className="premium-btn"
+                        style={{
+                          width: '100%',
+                          padding: '12px',
+                          borderRadius: '12px',
+                          fontSize: '13px',
+                          fontWeight: 800,
+                          marginTop: '4px',
+                          background: 'linear-gradient(135deg, #2E7D32, #4CAF50)',
+                          boxShadow: '0 4px 14px rgba(46,125,50,0.3)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          animation: 'pulse 1.5s infinite',
+                        }}
+                      >
+                        <Sparkles size={14} />
+                        <span>รับผลงานกระถางเข้าร้าน! 🏺 (+10 แต้ม)</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Virtual Collection Inventory Grid */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '15px', fontWeight: 700, color: 'var(--text-muted)' }}>
+              <BookOpen size={16} />
+              <span>กระถางปั้นดินเผาที่ครอบครอง ({customPots.length + 3})</span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+              
+              {/* Starter Pot 1 */}
+              <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                <div 
+                  style={{
+                    width: '70px', height: '75px',
+                    background: 'radial-gradient(circle at 30% 30%, #E69A5D, #CD853F)',
+                    borderRadius: '8px 8px 24px 24px', border: '2px solid var(--white)',
+                    boxShadow: '0 6px 12px rgba(0,0,0,0.1), inset 0 -6px 6px rgba(0,0,0,0.15)',
+                    position: 'relative'
+                  }}
+                >
+                  <div style={{ position: 'absolute', top: '-3px', left: '-4px', right: '-4px', height: '6px', borderRadius: '2px', background: '#CD853F', border: '2px solid var(--white)' }} />
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--primary)' }}>กระถางดินเหนียวฝึกหัด</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>สีส้มอิฐ • ทรงกลม</div>
+                </div>
+              </div>
+
+              {/* Starter Pot 2 */}
+              <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                <div 
+                  style={{
+                    width: '70px', height: '75px',
+                    background: 'radial-gradient(circle at 30% 30%, #F8D360, #F4B41A)',
+                    borderRadius: '8px 8px 24px 24px', border: '2px solid var(--white)',
+                    boxShadow: '0 6px 12px rgba(0,0,0,0.1), inset 0 -6px 6px rgba(0,0,0,0.15)',
+                    position: 'relative', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', color: 'rgba(30,81,40,0.5)'
+                  }}
+                >
+                  <div style={{ position: 'absolute', top: '-3px', left: '-4px', right: '-4px', height: '6px', borderRadius: '2px', background: '#F4B41A', border: '2px solid var(--white)' }} />
+                  <Sparkles size={20} style={{ opacity: 0.7 }} />
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--primary)' }}>กระถางดินเผาทองอำพัน</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>สีทองมงคล • ทรงกลม</div>
+                </div>
+              </div>
+
+              {/* Starter Pot 3 */}
+              <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                <div 
+                  style={{
+                    width: '70px', height: '75px',
+                    background: 'radial-gradient(circle at 30% 30%, #A86D4A, #8E5431)',
+                    borderRadius: '8px 8px 24px 24px', border: '2px solid var(--white)',
+                    boxShadow: '0 6px 12px rgba(0,0,0,0.1), inset 0 -6px 6px rgba(0,0,0,0.15)',
+                    position: 'relative', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', color: 'var(--gold)'
+                  }}
+                >
+                  <div style={{ position: 'absolute', top: '-3px', left: '-4px', right: '-4px', height: '6px', borderRadius: '2px', background: '#8E5431', border: '2px solid var(--white)' }} />
+                  <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: '28px', height: '28px', opacity: 0.8 }}>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" />
+                  </svg>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--primary)' }}>กระถางสยามมังกรห้าเล็บ</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>สีดินเหนียวเข้ม • ทรงกลม</div>
+                </div>
+              </div>
+
+              {/* Render custom pots created by user */}
+              {customPots.map((pot) => (
+                <div key={pot.id} className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                  <div 
+                    style={{
+                      width: '70px', height: '75px',
+                      background: COLORS.find(c => c.id === pot.color)?.gradient || pot.color,
+                      borderRadius: pot.shape === 'classic' 
+                        ? '8px 8px 24px 24px' 
+                        : pot.shape === 'modern' ? '6px 6px 8px 8px' : '18px 18px 8px 8px',
+                      border: '2px solid var(--white)',
+                      boxShadow: '0 6px 12px rgba(0,0,0,0.1), inset 0 -6px 6px rgba(0,0,0,0.15)',
+                      position: 'relative', display: 'flex', alignItems: 'center',
+                      justifyContent: 'center',
+                      color: PATTERNS.find(p => p.id === pot.pattern)?.color || '#FFF'
+                    }}
+                  >
+                    <div style={{ 
+                      position: 'absolute', top: '-3px', left: '-4px', right: '-4px', 
+                      height: '6px', borderRadius: '2px', background: pot.color, border: '2px solid var(--white)' 
+                    }} />
+                    <svg viewBox="0 0 24 24" fill="currentColor" style={{ width: '28px', height: '28px', opacity: 0.8, mixBlendMode: 'overlay' }}>
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z" />
+                    </svg>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--primary)' }}>{pot.name}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      {pot.colorName} • {pot.shapeTh}
+                    </div>
+                    {pot.cost && (
+                      <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--clay)', marginTop: '4px' }}>
+                        ฿{pot.cost.toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+            </div>
+          </div>
+        </>
+      )}
+
+    </div>
+  );
+};
