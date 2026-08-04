@@ -250,87 +250,88 @@ button:disabled {
 }
 
 .premium-btn {
-  background: linear-gradient(135deg, #0F381D 0%, #256E3F 50%, #154326 100%) !important;
+  background: linear-gradient(180deg, #2D7A47 0%, #154326 100%) !important;
   color: #FFFFFF !important;
   border: 1.5px solid #F59E0B !important;
-  border-radius: 16px;
+  border-radius: 16px !important;
   padding: 12px 26px;
   font-weight: 800;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 6px 20px rgba(21, 67, 38, 0.45), 0 0 15px rgba(245, 158, 11, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 5px 0 #0A2414, 0 10px 20px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.35) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 
 .premium-btn:hover {
-  transform: translateY(-3px) scale(1.02);
-  background: linear-gradient(135deg, #154D29 0%, #2E884F 50%, #1B5631 100%) !important;
-  box-shadow: 0 10px 30px rgba(45, 122, 71, 0.6), 0 0 22px rgba(245, 158, 11, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+  transform: translateY(-3px) !important;
+  background: linear-gradient(180deg, #358B52 0%, #1A4D2E 100%) !important;
+  box-shadow: 0 8px 0 #0A2414, 0 14px 28px rgba(0, 0, 0, 0.35), 0 0 18px rgba(245, 158, 11, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.5) !important;
   border-color: #FFD700 !important;
 }
 
 .premium-btn:active {
-  transform: translateY(2px) scale(0.95) !important;
-  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(3px) scale(0.96) !important;
+  box-shadow: 0 1px 0 #0A2414, 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
 }
 
 .clay-btn {
-  background: linear-gradient(135deg, #7C2D12 0%, #9A3412 50%, #C2410C 100%) !important;
+  background: linear-gradient(180deg, #C2410C 0%, #9A3412 100%) !important;
   color: #FFFFFF !important;
   border: 1.5px solid #FF8A65 !important;
-  border-radius: 16px;
+  border-radius: 16px !important;
   padding: 12px 26px;
   font-weight: 800;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 6px 20px rgba(154, 52, 18, 0.45), 0 0 15px rgba(255, 138, 101, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 5px 0 #541908, 0 10px 20px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.35) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 
 .clay-btn:hover {
-  transform: translateY(-3px) scale(1.02);
-  background: linear-gradient(135deg, #9A3412 0%, #C2410C 50%, #EA580C 100%) !important;
-  box-shadow: 0 10px 30px rgba(194, 65, 12, 0.6), 0 0 22px rgba(255, 138, 101, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+  transform: translateY(-3px) !important;
+  background: linear-gradient(180deg, #EA580C 0%, #B43A14 100%) !important;
+  box-shadow: 0 8px 0 #541908, 0 14px 28px rgba(0, 0, 0, 0.35), 0 0 18px rgba(255, 138, 101, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.5) !important;
 }
 
 .clay-btn:active {
-  transform: translateY(2px) scale(0.95) !important;
-  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(3px) scale(0.96) !important;
+  box-shadow: 0 1px 0 #541908, 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
 }
 
 .gold-btn {
-  background: linear-gradient(135deg, #B45309 0%, #D97706 50%, #F59E0B 100%) !important;
+  background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%) !important;
   color: #FFFFFF !important;
   border: 1.5px solid #FFD700 !important;
-  border-radius: 16px;
+  border-radius: 16px !important;
   padding: 12px 26px;
   font-weight: 800;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.45), 0 0 18px rgba(255, 215, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.6) !important;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 5px 0 #7C3D02, 0 10px 20px rgba(0, 0, 0, 0.25), inset 0 2px 0 rgba(255, 255, 255, 0.45) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 
 .gold-btn:hover {
-  transform: translateY(-3px) scale(1.02);
-  background: linear-gradient(135deg, #D97706 0%, #F59E0B 50%, #FBBF24 100%) !important;
-  box-shadow: 0 10px 30px rgba(245, 158, 11, 0.65), 0 0 25px rgba(255, 215, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+  transform: translateY(-3px) !important;
+  background: linear-gradient(180deg, #FBBF24 0%, #E58308 100%) !important;
+  box-shadow: 0 8px 0 #7C3D02, 0 14px 28px rgba(0, 0, 0, 0.35), 0 0 22px rgba(255, 215, 0, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.6) !important;
 }
 
 .gold-btn:active {
-  transform: translateY(2px) scale(0.95) !important;
-  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(3px) scale(0.96) !important;
+  box-shadow: 0 1px 0 #7C3D02, 0 4px 10px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Onboarding Styling */

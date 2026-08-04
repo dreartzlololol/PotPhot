@@ -116,27 +116,47 @@ class SoundFXManager {
     });
   }
 
-  // Tactile Button Click (Soft poppy sound)
+  // Crisp Mechanical Keyboard / Arcade Switch Clicky Sound Effect
   public playClick() {
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx) return;
 
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
+    const now = this.ctx.currentTime;
 
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(600, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.03);
+    // 1. Sharp Click Snap (High-pitch mechanical switch engagement)
+    const snapOsc = this.ctx.createOscillator();
+    const snapGain = this.ctx.createGain();
 
-    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.03);
+    snapOsc.type = 'triangle';
+    snapOsc.frequency.setValueAtTime(2400, now);
+    snapOsc.frequency.exponentialRampToValueAtTime(600, now + 0.018);
 
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
+    snapGain.gain.setValueAtTime(0.28, now);
+    snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.018);
 
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.03);
+    snapOsc.connect(snapGain);
+    snapGain.connect(this.ctx.destination);
+
+    snapOsc.start(now);
+    snapOsc.stop(now + 0.018);
+
+    // 2. Tactile Thud (Low mechanical body actuation response)
+    const thudOsc = this.ctx.createOscillator();
+    const thudGain = this.ctx.createGain();
+
+    thudOsc.type = 'sine';
+    thudOsc.frequency.setValueAtTime(380, now);
+    thudOsc.frequency.exponentialRampToValueAtTime(120, now + 0.035);
+
+    thudGain.gain.setValueAtTime(0.2, now);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+
+    thudOsc.connect(thudGain);
+    thudGain.connect(this.ctx.destination);
+
+    thudOsc.start(now);
+    thudOsc.stop(now + 0.035);
   }
 }
 
