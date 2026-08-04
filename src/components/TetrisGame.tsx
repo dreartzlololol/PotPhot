@@ -8,6 +8,7 @@ import { soundFX } from '../utils/audioFX';
 interface TetrisGameProps {
   userPoints: number;
   onAwardPoints: (points: number) => void;
+  onGameActiveChange?: (isActive: boolean) => void;
 }
 
 const BOARD_COLS = 10;
@@ -77,7 +78,7 @@ const PIECE_TYPES: PieceType[] = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
 const createEmptyBoard = () => 
   Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(''));
 
-export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoints }) => {
+export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoints, onGameActiveChange }) => {
   const [board, setBoard] = useState<string[][]>(createEmptyBoard());
   const [currentPiece, setCurrentPiece] = useState({
     shape: TETROMINOES.I.shape,
@@ -95,6 +96,19 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+
+  // Notify parent component of active gameplay status (for BackgroundMusic control)
+  useEffect(() => {
+    const isPlaying = gameStarted && !isGameOver && !isPaused;
+    if (onGameActiveChange) {
+      onGameActiveChange(isPlaying);
+    }
+    return () => {
+      if (onGameActiveChange) {
+        onGameActiveChange(false);
+      }
+    };
+  }, [gameStarted, isGameOver, isPaused, onGameActiveChange]);
 
   // Fullscreen toggle state & container ref
   const [isFullscreen, setIsFullscreen] = useState(false);

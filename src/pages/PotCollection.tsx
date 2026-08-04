@@ -346,7 +346,7 @@ export const PotCollection: React.FC<PotCollectionProps> = ({
       </div>
 
       {subTab === 'tetris' ? (
-        <TetrisGame userPoints={userPoints} onAwardPoints={onAwardPoints} />
+        <TetrisGame userPoints={userPoints} onAwardPoints={onAwardPoints} onGameActiveChange={onTetrisActiveChange} />
       ) : (
         <>
           {/* MiniGame Designer */}
