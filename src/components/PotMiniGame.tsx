@@ -242,10 +242,23 @@ const DressUpItem: React.FC<{
   onClick: () => void;
   swatch?: string;
   decalId?: string;
-}> = ({ emoji, label, desc, isSelected, onClick, swatch, decalId }) => (
-  <button
-    type="button"
-    onClick={onClick}
+}> = ({ emoji, label, desc, isSelected, onClick, swatch, decalId }) => {
+  const lastClickRef = React.useRef<number>(0);
+
+  const handleClick = (e: React.SyntheticEvent) => {
+    const now = Date.now();
+    if (now - lastClickRef.current < 200) {
+      e.preventDefault();
+      return;
+    }
+    lastClickRef.current = now;
+    onClick();
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
     style={{
       width: '72px', minHeight: '84px',
       padding: '8px 4px', borderRadius: '16px', cursor: 'pointer',
@@ -298,7 +311,8 @@ const DressUpItem: React.FC<{
       <div style={{ fontSize: '9px', color: '#8E5431', fontWeight: 600 }}>{desc}</div>
     )}
   </button>
-);
+  );
+};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 

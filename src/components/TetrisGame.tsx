@@ -98,6 +98,21 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
   // Fullscreen toggle state & container ref
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastTouchTimeRef = useRef<number>(0);
+
+  // Debounce guard to prevent double/triple firing on mobile touch & mouse
+  const handleDebouncedAction = useCallback((actionFn: () => void) => {
+    return (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const now = Date.now();
+      if (now - lastTouchTimeRef.current < 150) {
+        return; // Ignore duplicate press within 150ms window
+      }
+      lastTouchTimeRef.current = now;
+      actionFn();
+    };
+  }, []);
 
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
@@ -711,8 +726,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
             <button 
               type="button"
               className="tetris-touch-btn gamepad-focusable"
-              onMouseDown={(e) => { e.preventDefault(); movePiece(-1); }}
-              onTouchStart={(e) => { e.preventDefault(); movePiece(-1); }}
+              onPointerDown={handleDebouncedAction(() => movePiece(-1))}
               title="เลื่อนไปทางซ้าย"
             >
               <ArrowLeft size={22} />
@@ -723,8 +737,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
             <button 
               type="button"
               className="tetris-touch-btn gamepad-focusable"
-              onMouseDown={(e) => { e.preventDefault(); movePiece(1); }}
-              onTouchStart={(e) => { e.preventDefault(); movePiece(1); }}
+              onPointerDown={handleDebouncedAction(() => movePiece(1))}
               title="เลื่อนไปทางขวา"
             >
               <ArrowRight size={22} />
@@ -735,8 +748,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
             <button 
               type="button"
               className="tetris-touch-btn tetris-touch-btn-primary gamepad-focusable"
-              onMouseDown={(e) => { e.preventDefault(); rotatePiece(); }}
-              onTouchStart={(e) => { e.preventDefault(); rotatePiece(); }}
+              onPointerDown={handleDebouncedAction(rotatePiece)}
               title="หมุนชิ้นส่วนดินเผา"
             >
               <RotateCw size={22} />
@@ -747,8 +759,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
             <button 
               type="button"
               className="tetris-touch-btn gamepad-focusable"
-              onMouseDown={(e) => { e.preventDefault(); dropPiece(); }}
-              onTouchStart={(e) => { e.preventDefault(); dropPiece(); }}
+              onPointerDown={handleDebouncedAction(dropPiece)}
               title="เร่งบล็อกหล่นลงเร็ว"
             >
               <ArrowDown size={22} />
@@ -759,8 +770,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
             <button 
               type="button"
               className="tetris-touch-btn tetris-touch-btn-accent gamepad-focusable"
-              onMouseDown={(e) => { e.preventDefault(); hardDropPiece(); }}
-              onTouchStart={(e) => { e.preventDefault(); hardDropPiece(); }}
+              onPointerDown={handleDebouncedAction(hardDropPiece)}
               title="ทิ้งลงล่างสุดทันที"
             >
               <ChevronsDown size={22} />
@@ -771,8 +781,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
             <button 
               type="button"
               className="tetris-touch-btn gamepad-focusable"
-              onMouseDown={(e) => { e.preventDefault(); togglePause(); }}
-              onTouchStart={(e) => { e.preventDefault(); togglePause(); }}
+              onPointerDown={handleDebouncedAction(togglePause)}
               title="หยุดชั่วคราว / เล่นต่อ"
             >
               {isPaused ? <Play size={20} /> : <Pause size={20} />}
