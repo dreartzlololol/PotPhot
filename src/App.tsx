@@ -389,7 +389,7 @@ function App() {
       <ClickSparkleEffect />
 
       {/* Floating Interactive Dragon Mascot Gimmick */}
-      <FlyingDragonMascot onAwardBonusPoints={(pts) => setUserPoints(prev => prev + pts)} />
+      <FlyingDragonMascot />
 
 
     </>

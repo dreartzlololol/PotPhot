@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 
-interface FlyingDragonMascotProps {
-  onAwardBonusPoints?: (points: number) => void;
-}
+const MASCOT_MESSAGES = [
+  'สวัสดีครับชาวโพธาราม! ขอให้สนุกกับการปั้นกระถางนะครับ 🏺✨',
+  'พักสายตา จิบน้ำชาโพธารามกันสักครู่นะครับ 🍵🐉',
+  'ยินดีต้อนรับสู่แอป PotPhot เครื่องดินเผาโพธารามครับ! 👑',
+  'ลองไปที่แกลเลอรี แล้วแต่งตัวกระถาง 3D กันได้เลยครับ! 🎨',
+  'ขอบคุณที่มาเยี่ยมชมร้านกระถางดินเผาโพธารามนะครับ! 🌸',
+];
 
-export const FlyingDragonMascot: React.FC<FlyingDragonMascotProps> = ({ onAwardBonusPoints }) => {
+export const FlyingDragonMascot: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [posX, setPosX] = useState(-150);
   const [posY, setPosY] = useState(120);
@@ -54,14 +58,11 @@ export const FlyingDragonMascot: React.FC<FlyingDragonMascotProps> = ({ onAwardB
 
   const handleMascotClick = () => {
     if (bubbleText) return;
-    const bonus = 25;
-    if (onAwardBonusPoints) {
-      onAwardBonusPoints(bonus);
-    }
-    setBubbleText(`🎉 เย้! น้องมังกรแจกโบนัส +${bonus} แต้มช่างปั้น! 🏺✨`);
+    const randomMsg = MASCOT_MESSAGES[Math.floor(Math.random() * MASCOT_MESSAGES.length)];
+    setBubbleText(randomMsg);
     setTimeout(() => {
       setBubbleText(null);
-    }, 3500);
+    }, 3800);
   };
 
   if (!isVisible) return null;
@@ -79,7 +80,7 @@ export const FlyingDragonMascot: React.FC<FlyingDragonMascotProps> = ({ onAwardB
         animation: 'float 3s ease-in-out infinite',
       }}
       onClick={handleMascotClick}
-      title="คลิกเพื่อนรับโบนัสแต้มช่างปั้น! 🎁"
+      title="คลิกเพื่อนคุยกับน้องมังกร! 🐉"
     >
       {/* Dialog Bubble */}
       {bubbleText ? (
@@ -89,15 +90,16 @@ export const FlyingDragonMascot: React.FC<FlyingDragonMascotProps> = ({ onAwardB
             bottom: '100%',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'linear-gradient(135deg, #FFD700, #FFA000)',
-            color: '#154326',
+            background: 'linear-gradient(135deg, #154326, #2D7A47)',
+            color: '#FFD700',
             fontWeight: 800,
             fontSize: '12px',
-            padding: '8px 14px',
+            padding: '9px 16px',
             borderRadius: '18px',
-            boxShadow: '0 8px 24px rgba(245, 158, 11, 0.4)',
+            boxShadow: '0 8px 24px rgba(21, 67, 38, 0.35)',
             whiteSpace: 'nowrap',
             marginBottom: '8px',
+            border: '1.5px solid #F59E0B',
             animation: 'bounce-in 0.3s ease-out',
           }}
         >
@@ -122,7 +124,7 @@ export const FlyingDragonMascot: React.FC<FlyingDragonMascotProps> = ({ onAwardB
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           }}
         >
-          ✨ คลิกรับแต้ม! 🏺
+          🐉 น้องมังกรทักทาย! 💬
         </div>
       )}
 
