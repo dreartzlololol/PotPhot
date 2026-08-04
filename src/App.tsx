@@ -11,6 +11,7 @@ import type { FilterState } from './pages/SearchFilter';
 import { PotCollection } from './pages/PotCollection';
 import type { CustomPot } from './pages/PotCollection';
 import { Account } from './pages/Account';
+import type { AppSettingsConfig } from './pages/Settings';
 import { Settings } from './pages/Settings';
 import { SHOPS_DATA } from './data/shops';
 import type { Shop, Review } from './data/shops';
@@ -34,6 +35,30 @@ function App() {
   const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
   const [isInteractiveTourActive, setIsInteractiveTourActive] = useState<boolean>(false);
   const [isTetrisActive, setIsTetrisActive] = useState<boolean>(false);
+
+  const [appSettings, setAppSettings] = useState<AppSettingsConfig>(() => {
+    const saved = localStorage.getItem('photpot_settings');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      performanceMode: false,
+      modelQuality: 'high',
+      showDragonMascot: true,
+      showLeafParticles: true,
+      showClickSparkles: true,
+      musicEnabled: true,
+      musicVolume: 80,
+    };
+  });
+
+  const handleUpdateSettings = (newSettings: Partial<AppSettingsConfig>) => {
+    setAppSettings((prev) => {
+      const updated = { ...prev, ...newSettings };
+      localStorage.setItem('photpot_settings', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   // Load shops from database
   useEffect(() => {
@@ -271,10 +296,10 @@ function App() {
       <div className="fantasy-bg-overlay" />
 
       {/* Background music player - Only plays in Tetris game section */}
-      <BackgroundMusic isPlaying={activeTab === 'pot' && isTetrisActive} />
+      <BackgroundMusic isPlaying={appSettings.musicEnabled && activeTab === 'pot' && isTetrisActive} />
 
       {/* Background cinematic particles (Leaves & Sun dust) */}
-      <LeafParticles />
+      {appSettings.showLeafParticles && <LeafParticles />}
 
       {/* Xbox 360 Gamepad Input Manager */}
       <GamepadManager
@@ -344,6 +369,8 @@ function App() {
               <Settings 
                 onClearAllData={handleClearAllData} 
                 onOpenTutorial={() => setIsTutorialOpen(true)}
+                settings={appSettings}
+                onUpdateSettings={handleUpdateSettings}
               />
             )}
           </div>
@@ -386,10 +413,10 @@ function App() {
       />
 
       {/* Click Petal & Gold Sparkle Burst Effect */}
-      <ClickSparkleEffect />
+      {appSettings.showClickSparkles && <ClickSparkleEffect />}
 
       {/* Floating Interactive Dragon Mascot Gimmick */}
-      <FlyingDragonMascot />
+      {appSettings.showDragonMascot && <FlyingDragonMascot />}
 
 
     </>

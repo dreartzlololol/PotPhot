@@ -1,18 +1,69 @@
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, Sun, Moon, Info, Trash2, ShieldAlert, Gamepad } from 'lucide-react';
+import { 
+  Settings as SettingsIcon, 
+  Sun, 
+  Moon, 
+  Zap, 
+  Sparkles, 
+  Volume2, 
+  VolumeX, 
+  Gamepad, 
+  Trash2, 
+  Check, 
+  Music
+} from 'lucide-react';
+
+export interface AppSettingsConfig {
+  performanceMode: boolean;
+  modelQuality: 'high' | 'medium' | 'low';
+  showDragonMascot: boolean;
+  showLeafParticles: boolean;
+  showClickSparkles: boolean;
+  musicEnabled: boolean;
+  musicVolume: number;
+}
 
 interface SettingsProps {
   onClearAllData: () => void;
   onOpenTutorial?: () => void;
+  settings: AppSettingsConfig;
+  onUpdateSettings: (newSettings: Partial<AppSettingsConfig>) => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ onClearAllData, onOpenTutorial }) => {
+export const Settings: React.FC<SettingsProps> = ({ 
+  onClearAllData, 
+  onOpenTutorial, 
+  settings, 
+  onUpdateSettings 
+}) => {
   const [sunlightMode, setSunlightMode] = useState(true);
 
-  // Toggle Dark Mode (Moonlight) vs Light Mode (Sunlight) on the body element
+  // Toggle Dark Mode (Moonlight) vs Light Mode (Sunlight)
   const handleThemeToggle = () => {
     setSunlightMode(!sunlightMode);
     document.body.classList.toggle('dark-theme');
+  };
+
+  const handlePerformanceModeToggle = (enabled: boolean) => {
+    if (enabled) {
+      onUpdateSettings({
+        performanceMode: true,
+        showLeafParticles: false,
+        showClickSparkles: false,
+        showDragonMascot: false,
+        modelQuality: 'low'
+      });
+      document.body.classList.add('perf-mode');
+    } else {
+      onUpdateSettings({
+        performanceMode: false,
+        showLeafParticles: true,
+        showClickSparkles: true,
+        showDragonMascot: true,
+        modelQuality: 'high'
+      });
+      document.body.classList.remove('perf-mode');
+    }
   };
 
   const handleClearData = () => {
@@ -37,7 +88,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClearAllData, onOpenTutori
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
+        gap: '20px',
         overflowY: 'auto',
       }}
     >
@@ -53,7 +104,7 @@ export const Settings: React.FC<SettingsProps> = ({ onClearAllData, onOpenTutori
           className="glass-panel" 
           style={{ 
             padding: '20px', 
-            background: 'linear-gradient(135deg, rgba(30,81,40,0.08) 0%, rgba(226,184,90,0.15) 100%)',
+            background: 'linear-gradient(135deg, rgba(30,81,40,0.08) 0%, rgba(245,158,11,0.15) 100%)',
             border: '1.5px solid var(--gold-light)',
             display: 'flex', 
             alignItems: 'center', 
@@ -62,11 +113,11 @@ export const Settings: React.FC<SettingsProps> = ({ onClearAllData, onOpenTutori
           }}
         >
           <div>
-            <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--primary)', marginBottom: '4px' }}>
+            <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--primary)', marginBottom: '4px' }}>
               📖 คู่มือการใช้งานเว็บไซต์ (Tutorial Guide)
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              อ่านคำแนะนำสำหรับลูกค้า, เจ้าของร้าน, ไรเดอร์ และการจอยเกม Xbox 360
+              อ่านคำแนะนำพาทัวร์เว็บไซต์ และระบบการจอยเกม Xbox 360
             </div>
           </div>
           <button 
@@ -79,9 +130,208 @@ export const Settings: React.FC<SettingsProps> = ({ onClearAllData, onOpenTutori
         </div>
       )}
 
-      {/* Theme Toggles */}
+      {/* 🚀 Section 1: Performance & Speed Mode */}
       <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--primary)' }}>โหมดการแสดงผล</div>
+        <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Zap size={18} style={{ color: 'var(--gold-light)' }} />
+          <span>โหมดประสิทธิภาพ (Performance Mode)</span>
+        </div>
+
+        {/* Master Performance Switch */}
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: 'rgba(245,158,11,0.06)', padding: '12px 14px', borderRadius: '16px', border: '1px solid rgba(245,158,11,0.2)' }}>
+          <div>
+            <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--primary)' }}>
+              ⚡ Performance Mode (โหมดเพิ่มความเร็ว)
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              ปิดเอฟเฟกต์เบลอและเอฟเฟกต์ลอยบนหน้าจอ สำหรับคอม/มือถือสเปกประหยัด
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            checked={settings.performanceMode}
+            onChange={(e) => handlePerformanceModeToggle(e.target.checked)}
+            style={{
+              width: '44px',
+              height: '24px',
+              appearance: 'none',
+              backgroundColor: settings.performanceMode ? 'var(--primary-light)' : 'var(--text-muted)',
+              borderRadius: '12px',
+              position: 'relative',
+              outline: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.3s',
+            }}
+            className="filter-toggle-switch gamepad-focusable"
+          />
+        </label>
+
+        {/* 3D Render Quality Selector */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+          <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)' }}>
+            🎨 ความละเอียดกราฟิก 3D (3D Model Quality)
+          </span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+            {(['high', 'medium', 'low'] as const).map((q) => (
+              <button
+                key={q}
+                type="button"
+                className="gamepad-focusable"
+                onClick={() => onUpdateSettings({ modelQuality: q })}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  border: settings.modelQuality === q ? '2px solid var(--primary-light)' : '1px solid rgba(0,0,0,0.1)',
+                  background: settings.modelQuality === q ? 'rgba(45,122,71,0.12)' : 'var(--white)',
+                  color: settings.modelQuality === q ? 'var(--primary)' : 'var(--text-dark)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                }}
+              >
+                {settings.modelQuality === q && <Check size={14} />}
+                <span>{q === 'high' ? 'High 🌟' : q === 'medium' ? 'Medium ⚡' : 'Low 🍃'}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 🎨 Section 2: Visual Effects & Animations */}
+      <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Sparkles size={18} style={{ color: 'var(--gold)' }} />
+          <span>อนิเมชันและเอฟเฟกต์ (Visual Effects)</span>
+        </div>
+
+        {/* Flying Dragon Mascot Toggle */}
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+          <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-dark)' }}>
+            🐉 น้องมังกรมาสคอตลอยทักทาย (Dragon Mascot Animation)
+          </span>
+          <input
+            type="checkbox"
+            checked={settings.showDragonMascot}
+            onChange={(e) => onUpdateSettings({ showDragonMascot: e.target.checked })}
+            style={{
+              width: '44px',
+              height: '24px',
+              appearance: 'none',
+              backgroundColor: settings.showDragonMascot ? 'var(--primary-light)' : 'var(--text-muted)',
+              borderRadius: '12px',
+              position: 'relative',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+            className="filter-toggle-switch gamepad-focusable"
+          />
+        </label>
+
+        {/* Falling Leaves Toggle */}
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+          <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-dark)' }}>
+            🍃 ใบไม้ปลิวร่วงหล่น (Falling Leaf Particles)
+          </span>
+          <input
+            type="checkbox"
+            checked={settings.showLeafParticles}
+            onChange={(e) => onUpdateSettings({ showLeafParticles: e.target.checked })}
+            style={{
+              width: '44px',
+              height: '24px',
+              appearance: 'none',
+              backgroundColor: settings.showLeafParticles ? 'var(--primary-light)' : 'var(--text-muted)',
+              borderRadius: '12px',
+              position: 'relative',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+            className="filter-toggle-switch gamepad-focusable"
+          />
+        </label>
+
+        {/* Click Sparkles Toggle */}
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+          <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-dark)' }}>
+            ✨ พลุละอองดาวเมื่อคลิก (Click Sparkle Bursts)
+          </span>
+          <input
+            type="checkbox"
+            checked={settings.showClickSparkles}
+            onChange={(e) => onUpdateSettings({ showClickSparkles: e.target.checked })}
+            style={{
+              width: '44px',
+              height: '24px',
+              appearance: 'none',
+              backgroundColor: settings.showClickSparkles ? 'var(--primary-light)' : 'var(--text-muted)',
+              borderRadius: '12px',
+              position: 'relative',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+            className="filter-toggle-switch gamepad-focusable"
+          />
+        </label>
+      </div>
+
+      {/* 🎵 Section 3: Audio & Sound Effects */}
+      <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Music size={18} style={{ color: 'var(--clay-light)' }} />
+          <span>ระบบเสียงและเพลง (Audio Settings)</span>
+        </div>
+
+        {/* BGM Toggle */}
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+          <span style={{ fontSize: '13.5px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {settings.musicEnabled ? <Volume2 size={18} style={{ color: 'var(--primary-light)' }} /> : <VolumeX size={18} style={{ color: 'var(--text-muted)' }} />}
+            <span>เล่นเพลงประกอบเกม Tetris (Background Music)</span>
+          </span>
+          <input
+            type="checkbox"
+            checked={settings.musicEnabled}
+            onChange={(e) => onUpdateSettings({ musicEnabled: e.target.checked })}
+            style={{
+              width: '44px',
+              height: '24px',
+              appearance: 'none',
+              backgroundColor: settings.musicEnabled ? 'var(--primary-light)' : 'var(--text-muted)',
+              borderRadius: '12px',
+              position: 'relative',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+            className="filter-toggle-switch gamepad-focusable"
+          />
+        </label>
+
+        {/* Volume Slider */}
+        {settings.musicEnabled && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600 }}>
+              <span>ระดับเสียงเพลง (Music Volume)</span>
+              <span>{settings.musicVolume}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={settings.musicVolume}
+              onChange={(e) => onUpdateSettings({ musicVolume: parseInt(e.target.value, 10) })}
+              style={{ width: '100%', accentColor: 'var(--primary-light)', cursor: 'pointer' }}
+              className="gamepad-focusable"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* 🌙 Section 4: Theme Toggle */}
+      <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--primary)' }}>โหมดธีมการแสดงผล</div>
         
         <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
           <span style={{ fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -101,14 +351,13 @@ export const Settings: React.FC<SettingsProps> = ({ onClearAllData, onOpenTutori
               position: 'relative',
               outline: 'none',
               cursor: 'pointer',
-              transition: 'background-color 0.3s',
             }}
             className="filter-toggle-switch gamepad-focusable"
           />
         </label>
       </div>
 
-      {/* Xbox 360 Controller Settings Guide */}
+      {/* 🎮 Section 5: Xbox Controller Guide */}
       <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Gamepad size={18} style={{ color: 'var(--primary-light)' }} />
@@ -149,99 +398,43 @@ export const Settings: React.FC<SettingsProps> = ({ onClearAllData, onOpenTutori
             <span style={{ fontWeight: 600 }}>ปุ่ม B</span>
             <span style={{ color: 'var(--text-muted)' }}>ยกเลิก / ปิดกล่องข้อความย้อนกลับ ❌</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.03)', paddingTop: '6px' }}>
-            <span style={{ fontWeight: 600 }}>ปุ่ม X</span>
-            <span style={{ color: 'var(--text-muted)' }}>กดบันทึกร้านโปรด ❤️</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.03)', paddingTop: '6px' }}>
-            <span style={{ fontWeight: 600 }}>ปุ่ม Y</span>
-            <span style={{ color: 'var(--text-muted)' }}>ซ่อน / แสดง แถบเมนูด้านล่าง 📂</span>
-          </div>
-        </div>
-
-        <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--primary)', marginTop: '8px' }}>
-          🎮 การควบคุมเกมตัวต่อดินเผา (Clay Tetris)
-        </div>
-        <div 
-          style={{
-            background: 'var(--bg-cream)',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            fontSize: '12px',
-            border: '1px solid rgba(30, 81, 40, 0.06)'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 600 }}>อนาล็อกซ้าย / D-pad ซ้าย-ขวา</span>
-            <span style={{ color: 'var(--text-muted)' }}>เลื่อนบล็อกตัวต่อดินเผา 🧱</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.03)', paddingTop: '6px' }}>
-            <span style={{ fontWeight: 600 }}>อนาล็อกซ้าย / D-pad ล่าง</span>
-            <span style={{ color: 'var(--text-muted)' }}>เร่งบล็อกหล่นลงมา (Soft Drop) ⬇️</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.03)', paddingTop: '6px' }}>
-            <span style={{ fontWeight: 600 }}>ปุ่ม A / D-pad บน</span>
-            <span style={{ color: 'var(--text-muted)' }}>หมุนชิ้นตัวต่อดินเผา 🔄</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.03)', paddingTop: '6px' }}>
-            <span style={{ fontWeight: 600 }}>ปุ่ม X / Y</span>
-            <span style={{ color: 'var(--text-muted)' }}>วางบล็อกทันที (Hard Drop) 💥</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(0,0,0,0.03)', paddingTop: '6px' }}>
-            <span style={{ fontWeight: 600 }}>ปุ่ม B</span>
-            <span style={{ color: 'var(--text-muted)' }}>หยุดเกมชั่วคราว / เล่นต่อ ⏸️</span>
-          </div>
         </div>
       </div>
 
-      {/* Reset Data Section */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ fontWeight: 700, fontSize: '15px', color: '#D32F2F', display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <ShieldAlert size={18} />
-          <span>พื้นที่ดูแลความปลอดภัยข้อมูล</span>
+      {/* 🗑️ Section 6: Danger Zone */}
+      <div 
+        className="glass-panel" 
+        style={{ 
+          padding: '20px', 
+          borderColor: 'rgba(239, 68, 68, 0.3)',
+          background: 'rgba(254, 242, 242, 0.6)' 
+        }}
+      >
+        <div style={{ color: '#DC2626', fontWeight: 700, fontSize: '15px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Trash2 size={18} />
+          <span>ล้างแคชและข้อมูลแอปทั้งหมด</span>
         </div>
-        <p style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-          หากรู้สึกว่าต้องการเริ่มต้นการสะสมคะแนนปั้นกระถางและรายชื่อร้านค้าโปรดใหม่ทั้งหมด สามารถกดปุ่มล้างข้อมูลด้านล่างนี้ได้
+        <p style={{ fontSize: '12px', color: '#991B1B', lineHeight: 1.5, marginBottom: '14px' }}>
+          การล้างข้อมูลจะทำการรีเซ็ตรายการโปรด กระถางที่คุณออกแบบทั้งหมด และแต้มสะสมสวน
         </p>
-        <button 
-          className="gamepad-focusable"
+        <button
           onClick={handleClearData}
+          className="gamepad-focusable"
           style={{
-            background: 'rgba(211, 47, 47, 0.08)',
-            border: '1px solid rgba(211, 47, 47, 0.3)',
+            background: '#DC2626',
+            color: '#FFFFFF',
+            border: 'none',
             borderRadius: '12px',
-            color: '#D32F2F',
-            padding: '12px',
-            fontWeight: 700,
+            padding: '10px 18px',
             fontSize: '13px',
+            fontWeight: 700,
             cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'all 0.2s'
+            boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(211, 47, 47, 0.15)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(211, 47, 47, 0.08)'}
         >
-          <Trash2 size={16} />
-          <span>ล้างประวัติการเก็บแต้ม & ร้านโปรด</span>
+          ล้างข้อมูลทั้งหมด ⚠️
         </button>
       </div>
-
-      {/* App Info Box */}
-      <div className="glass-panel" style={{ padding: '20px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-        <Info size={20} style={{ color: 'var(--primary-light)', flexShrink: 0, marginTop: '2px' }} />
-        <div style={{ fontSize: '12px', lineHeight: 1.6, color: 'var(--text-muted)' }}>
-          <div style={{ fontWeight: 700, color: 'var(--primary)', marginBottom: '4px' }}>PotPhot - Cozy Thai Garden Fantasy</div>
-          <div>รุ่นปัจจุบัน: v1.2.0 - Photharam Pot Discovery Edition</div>
-          <div>พัฒนาเพื่ออนุรักษ์ลวดลายมังกรดินเผาคู่บ้านคู่เมืองราชบุรีและส่งเสริมการท่องเที่ยวชุมชนท้องถิ่น อำเภอโพธาราม 🇹🇭🐉</div>
-        </div>
-      </div>
-
     </div>
   );
 };
