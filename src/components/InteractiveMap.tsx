@@ -102,16 +102,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       tileLayerRef.current = L.tileLayer(initialConfig.url, {
         attribution: initialConfig.attr,
       }).addTo(map);
-
-      // Add Historic Photharam Pottery Heritage Circle Zone
-      L.circle(PHOTHARAM_CENTER, {
-        color: '#D97706',
-        fillColor: '#F59E0B',
-        fillOpacity: 0.08,
-        weight: 2,
-        dashArray: '6, 8',
-        radius: 2800,
-      }).addTo(map);
     }
 
     return () => {
