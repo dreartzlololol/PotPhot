@@ -21,14 +21,14 @@ export const TiltCard: React.FC<TiltCardProps> = ({ children, className = '', st
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotateX = -((y - centerY) / centerY) * 14; // max 14 deg tilt
-    const rotateY = ((x - centerX) / centerX) * 14;
+    const rotateX = -((y - centerY) / centerY) * 6; // max 6 deg subtle tilt
+    const rotateY = ((x - centerX) / centerX) * 6;
 
-    setTransform(`perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale(1.03)`);
+    setTransform(`perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale(1.015)`);
     setGlarePos({
       x: (x / rect.width) * 100,
       y: (y / rect.height) * 100,
-      opacity: 0.45,
+      opacity: 0.25,
     });
   };
 
