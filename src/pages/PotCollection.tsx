@@ -35,6 +35,7 @@ interface PotCollectionProps {
   onAwardPoints: (points: number) => void;
   shops: Shop[];
   currentUser?: UserProfile | null;
+  onTetrisActiveChange?: (active: boolean) => void;
 }
 
 // SHAPES is unused, removed to satisfy compilation
@@ -60,12 +61,25 @@ export const PotCollection: React.FC<PotCollectionProps> = ({
   onAwardPoints,
   shops,
   currentUser,
+  onTetrisActiveChange,
 }) => {
   const [subTab, setSubTab] = useState<'gallery' | 'tetris'>('gallery');
   const [bakedSuccess, setBakedSuccess] = useState(false);
   const [lastCost, setLastCost] = useState<number | null>(null);
   const [orders, setOrders] = useState<PotOrder[]>([]);
   const designerRef = useRef<HTMLDivElement>(null);
+
+  // Notify parent component when entering/leaving Tetris subTab
+  useEffect(() => {
+    if (onTetrisActiveChange) {
+      onTetrisActiveChange(subTab === 'tetris');
+    }
+    return () => {
+      if (onTetrisActiveChange) {
+        onTetrisActiveChange(false);
+      }
+    };
+  }, [subTab, onTetrisActiveChange]);
 
   // Pot Selection & Commission States
   const [designedPot, setDesignedPot] = useState<CustomPot | null>(null);

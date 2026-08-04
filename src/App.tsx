@@ -29,6 +29,7 @@ function App() {
   const [customPots, setCustomPots] = useState<CustomPot[]>([]);
   const [userPoints, setUserPoints] = useState<number>(15); // Starter points
   const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
+  const [isTetrisActive, setIsTetrisActive] = useState<boolean>(false);
 
   // Load shops from database
   useEffect(() => {
@@ -265,8 +266,8 @@ function App() {
       {/* Dynamic pattern background overlay */}
       <div className="fantasy-bg-overlay" />
 
-      {/* Background music player */}
-      <BackgroundMusic />
+      {/* Background music player - Only plays in Tetris game section */}
+      <BackgroundMusic isPlaying={activeTab === 'pot' && isTetrisActive} />
 
       {/* Background cinematic particles (Leaves & Sun dust) */}
       <LeafParticles />
@@ -320,6 +321,7 @@ function App() {
                 onAwardPoints={handleAwardPoints}
                 shops={shops}
                 currentUser={currentUser}
+                onTetrisActiveChange={setIsTetrisActive}
               />
             )}
             {activeTab === 'account' && (
