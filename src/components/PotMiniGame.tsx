@@ -1140,7 +1140,8 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
         @media (min-width: 900px) {
           .dressup-layout {
             flex-direction: row;
-            min-height: 560px;
+            height: calc(100vh - 210px);
+            min-height: 520px;
           }
           .dressup-stage {
             flex: 1.2 1 0;

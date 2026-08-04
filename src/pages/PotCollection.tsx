@@ -259,14 +259,14 @@ export const PotCollection: React.FC<PotCollectionProps> = ({
     <div 
       className="tab-page-container"
       style={{
-        padding: '24px 24px 100px 24px',
+        padding: isDesigning ? '16px 16px 20px 16px' : '24px 24px 80px 24px',
         maxWidth: isDesigning ? '1060px' : '680px',
         margin: '0 auto',
         width: '100%',
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
+        gap: '16px',
         overflowY: 'auto',
         transition: 'max-width 0.3s ease-in-out',
       }}
