@@ -148,6 +148,17 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
   );
   const [highlightLineIndices, setHighlightLineIndices] = useState<number[]>([]);
   const [isBloomActive, setIsBloomActive] = useState<boolean>(false);
+  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && (window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0);
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsTouchDevice(window.innerWidth <= 768 || 'ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const triggerBloom = useCallback(() => {
     setIsBloomActive(true);
@@ -749,7 +760,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
       </div>
 
       {/* On-Screen Touch Controller UI for Mobile Phones & Tablets */}
-      {gameStarted && !isGameOver && (
+      {isTouchDevice && gameStarted && !isGameOver && (
         <div className="tetris-mobile-controls-panel glass-panel">
           <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '10px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
             📱 <span>แผงปุ่มควบคุมสัมผัสบนมือถือ (Mobile Touch Pad)</span>

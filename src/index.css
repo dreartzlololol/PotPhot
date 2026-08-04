@@ -2153,7 +2153,13 @@ body.dark-theme .tetris-pause-overlay {
   box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3) !important;
 }
 
-/* Mobile Touch Controller Floating Overlay Styling for Tetris */
+/* Mobile Touch Controller Floating Overlay Styling for Tetris - Hidden on PC/Desktop */
+@media (min-width: 769px) {
+  .tetris-mobile-controls-panel {
+    display: none !important;
+  }
+}
+
 .tetris-mobile-controls-panel {
   position: fixed;
   bottom: 84px;
