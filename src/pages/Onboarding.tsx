@@ -90,18 +90,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             zIndex: 2,
           }}
         >
-          {/* Benjarong Gold Ribbon Trim on top */}
-          <div 
-            style={{
-              position: 'absolute', 
-              top: 0, 
-              left: 0, 
-              right: 0, 
-              height: '5px',
-              background: 'repeating-linear-gradient(90deg, #D97706 0px, #D97706 12px, #154326 12px, #154326 24px, #9A3412 24px, #9A3412 36px, #F59E0B 36px, #F59E0B 48px)',
-            }} 
-          />
-
           {/* Header Craft Title */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '10px', fontWeight: 800, color: 'var(--gold)', letterSpacing: '0.8px', marginBottom: '10px', textTransform: 'uppercase' }}>
             <Crown size={13} />
@@ -128,19 +116,8 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
             <span>{slides[currentSlide].badge}</span>
           </div>
 
-          {/* Mascot Wrapper with Pulsing Glowing Star Ring */}
+          {/* Mascot Wrapper */}
           <div className="onboarding-mascot-wrapper" style={{ position: 'relative' }}>
-            <div 
-              style={{
-                position: 'absolute',
-                width: '190px',
-                height: '190px',
-                borderRadius: '50%',
-                border: '2px dashed rgba(245, 158, 11, 0.5)',
-                animation: 'spin-slow 15s linear infinite',
-                pointerEvents: 'none',
-              }}
-            />
             <div className="onboarding-dragon-spiral" />
             <div className="onboarding-sparkle" />
             <img 
