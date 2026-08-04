@@ -23,6 +23,8 @@ import { InteractiveTourOverlay } from './components/InteractiveTourOverlay';
 import { ClickSparkleEffect } from './components/ClickSparkleEffect';
 import { FlyingDragonMascot } from './components/FlyingDragonMascot';
 
+import { soundFX } from './utils/audioFX';
+
 function App() {
   const [page, setPage] = useState<'onboarding' | 'home'>('onboarding');
   const [activeTab, setActiveTab] = useState<TabType>('store');
@@ -51,6 +53,18 @@ function App() {
       musicVolume: 80,
     };
   });
+
+  // Global Tactile Audio Click Listener for all UI buttons & controls
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && target.closest('button, .gamepad-focusable, .view-tab-btn, .category-chip, .bottom-nav-item, input[type="button"], input[type="submit"]')) {
+        soundFX.playClick();
+      }
+    };
+    window.addEventListener('click', handleGlobalClick, true);
+    return () => window.removeEventListener('click', handleGlobalClick, true);
+  }, []);
 
   const handleUpdateSettings = (newSettings: Partial<AppSettingsConfig>) => {
     setAppSettings((prev) => {
