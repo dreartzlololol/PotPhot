@@ -19,6 +19,8 @@ import { BackgroundMusic } from './components/BackgroundMusic';
 import type { UserProfile } from './types/auth';
 import { UserTutorialModal } from './components/UserTutorialModal';
 import { InteractiveTourOverlay } from './components/InteractiveTourOverlay';
+import { ClickSparkleEffect } from './components/ClickSparkleEffect';
+import { FlyingDragonMascot } from './components/FlyingDragonMascot';
 
 function App() {
   const [page, setPage] = useState<'onboarding' | 'home'>('onboarding');
@@ -382,6 +384,12 @@ function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
+
+      {/* Click Petal & Gold Sparkle Burst Effect */}
+      <ClickSparkleEffect />
+
+      {/* Floating Interactive Dragon Mascot Gimmick */}
+      <FlyingDragonMascot onAwardBonusPoints={(pts) => setUserPoints(prev => prev + pts)} />
 
 
     </>
