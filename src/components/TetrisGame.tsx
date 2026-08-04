@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, RotateCcw, ShieldAlert, Flame, Maximize, Minimize } from 'lucide-react';
+import { 
+  Play, Pause, RotateCcw, ShieldAlert, Flame, Maximize, Minimize,
+  ArrowLeft, ArrowRight, ArrowDown, RotateCw, ChevronsDown 
+} from 'lucide-react';
 
 interface TetrisGameProps {
   userPoints: number;
@@ -695,6 +698,89 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
         </div>
 
       </div>
+
+      {/* On-Screen Touch Controller UI for Mobile Phones & Tablets */}
+      {gameStarted && !isGameOver && (
+        <div className="tetris-mobile-controls-panel glass-panel">
+          <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '10px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            📱 <span>แผงปุ่มควบคุมสัมผัสบนมือถือ (Mobile Touch Pad)</span>
+          </div>
+
+          <div className="tetris-mobile-btn-grid">
+            {/* Move Left */}
+            <button 
+              type="button"
+              className="tetris-touch-btn gamepad-focusable"
+              onMouseDown={(e) => { e.preventDefault(); movePiece(-1); }}
+              onTouchStart={(e) => { e.preventDefault(); movePiece(-1); }}
+              title="เลื่อนไปทางซ้าย"
+            >
+              <ArrowLeft size={22} />
+              <span>ซ้าย ◀</span>
+            </button>
+
+            {/* Move Right */}
+            <button 
+              type="button"
+              className="tetris-touch-btn gamepad-focusable"
+              onMouseDown={(e) => { e.preventDefault(); movePiece(1); }}
+              onTouchStart={(e) => { e.preventDefault(); movePiece(1); }}
+              title="เลื่อนไปทางขวา"
+            >
+              <ArrowRight size={22} />
+              <span>ขวา ▶</span>
+            </button>
+
+            {/* Rotate */}
+            <button 
+              type="button"
+              className="tetris-touch-btn tetris-touch-btn-primary gamepad-focusable"
+              onMouseDown={(e) => { e.preventDefault(); rotatePiece(); }}
+              onTouchStart={(e) => { e.preventDefault(); rotatePiece(); }}
+              title="หมุนชิ้นส่วนดินเผา"
+            >
+              <RotateCw size={22} />
+              <span>หมุน 🔄</span>
+            </button>
+
+            {/* Soft Drop */}
+            <button 
+              type="button"
+              className="tetris-touch-btn gamepad-focusable"
+              onMouseDown={(e) => { e.preventDefault(); dropPiece(); }}
+              onTouchStart={(e) => { e.preventDefault(); dropPiece(); }}
+              title="เร่งบล็อกหล่นลงเร็ว"
+            >
+              <ArrowDown size={22} />
+              <span>ลงเร็ว 🔽</span>
+            </button>
+
+            {/* Hard Drop */}
+            <button 
+              type="button"
+              className="tetris-touch-btn tetris-touch-btn-accent gamepad-focusable"
+              onMouseDown={(e) => { e.preventDefault(); hardDropPiece(); }}
+              onTouchStart={(e) => { e.preventDefault(); hardDropPiece(); }}
+              title="ทิ้งลงล่างสุดทันที"
+            >
+              <ChevronsDown size={22} />
+              <span>วางทันที ⏬</span>
+            </button>
+
+            {/* Pause / Resume */}
+            <button 
+              type="button"
+              className="tetris-touch-btn gamepad-focusable"
+              onMouseDown={(e) => { e.preventDefault(); togglePause(); }}
+              onTouchStart={(e) => { e.preventDefault(); togglePause(); }}
+              title="หยุดชั่วคราว / เล่นต่อ"
+            >
+              {isPaused ? <Play size={20} /> : <Pause size={20} />}
+              <span>{isPaused ? 'เล่นต่อ ▶' : 'หยุด ⏸'}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
