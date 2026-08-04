@@ -95,7 +95,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           return (
             <button
               key={tab.id}
-              className={`bottom-nav-btn ${isActive ? 'active' : ''}`}
+              id={`tutorial-nav-${tab.id}`}
+              className={`bottom-nav-btn gamepad-focusable ${isActive ? 'active' : ''}`}
               onClick={() => onChangeTab(tab.id)}
               title={tab.label}
             >

@@ -15,9 +15,10 @@ import {
 interface UserTutorialModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onStartInteractiveTour?: () => void;
 }
 
-export const UserTutorialModal: React.FC<UserTutorialModalProps> = ({ isOpen, onClose }) => {
+export const UserTutorialModal: React.FC<UserTutorialModalProps> = ({ isOpen, onClose, onStartInteractiveTour }) => {
   const [activeCategory, setActiveCategory] = useState<'overview' | 'customer' | 'shop' | 'rider' | 'gamepad'>('overview');
 
   if (!isOpen) return null;
@@ -64,7 +65,8 @@ export const UserTutorialModal: React.FC<UserTutorialModalProps> = ({ isOpen, on
             color: '#FFFFFF',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            gap: '12px'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -90,6 +92,35 @@ export const UserTutorialModal: React.FC<UserTutorialModalProps> = ({ isOpen, on
               </p>
             </div>
           </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {onStartInteractiveTour && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onStartInteractiveTour();
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #FFD700, #FFA000)',
+                  border: 'none',
+                  borderRadius: '14px',
+                  padding: '8px 14px',
+                  color: '#1E5128',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(255, 215, 0, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <Sparkles size={16} />
+                <span>พาทัวร์แอปพลิเคชัน 🚀</span>
+              </button>
+            )}
           <button 
             onClick={onClose}
             style={{
@@ -110,6 +141,7 @@ export const UserTutorialModal: React.FC<UserTutorialModalProps> = ({ isOpen, on
           >
             <X size={20} />
           </button>
+          </div>
         </div>
 
         {/* Navigation Tabs */}

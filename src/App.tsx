@@ -18,6 +18,7 @@ import { GamepadManager } from './components/GamepadManager';
 import { BackgroundMusic } from './components/BackgroundMusic';
 import type { UserProfile } from './types/auth';
 import { UserTutorialModal } from './components/UserTutorialModal';
+import { InteractiveTourOverlay } from './components/InteractiveTourOverlay';
 
 function App() {
   const [page, setPage] = useState<'onboarding' | 'home'>('onboarding');
@@ -29,6 +30,7 @@ function App() {
   const [customPots, setCustomPots] = useState<CustomPot[]>([]);
   const [userPoints, setUserPoints] = useState<number>(15); // Starter points
   const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
+  const [isInteractiveTourActive, setIsInteractiveTourActive] = useState<boolean>(false);
   const [isTetrisActive, setIsTetrisActive] = useState<boolean>(false);
 
   // Load shops from database
@@ -370,6 +372,15 @@ function App() {
       <UserTutorialModal 
         isOpen={isTutorialOpen} 
         onClose={() => setIsTutorialOpen(false)} 
+        onStartInteractiveTour={() => setIsInteractiveTourActive(true)}
+      />
+
+      {/* Interactive Guided App Spotlight Tour */}
+      <InteractiveTourOverlay
+        isActive={isInteractiveTourActive}
+        onFinish={() => setIsInteractiveTourActive(false)}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
       />
 
 
