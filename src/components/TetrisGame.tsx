@@ -3,6 +3,7 @@ import {
   Play, Pause, RotateCcw, ShieldAlert, Flame, Maximize, Minimize,
   ArrowLeft, ArrowRight, ArrowDown, RotateCw, ChevronsDown 
 } from 'lucide-react';
+import { soundFX } from '../utils/audioFX';
 
 interface TetrisGameProps {
   userPoints: number;
@@ -146,6 +147,12 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
     'สวัสดีครับ! มาลองเล่นเกมตัวต่อดินเผากันเถอะครับ เคลียร์แถวเพื่อสะสมคะแนนปั้นดินสะสมระดับช่างปั้นนะคร้าบ! 🐉🧱'
   );
   const [highlightLineIndices, setHighlightLineIndices] = useState<number[]>([]);
+  const [isBloomActive, setIsBloomActive] = useState<boolean>(false);
+
+  const triggerBloom = useCallback(() => {
+    setIsBloomActive(true);
+    setTimeout(() => setIsBloomActive(false), 450);
+  }, []);
 
   // Refs for tracking mutable game state in listeners
   const boardRef = useRef(board);
@@ -260,6 +267,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
     }
 
     if (!checkCollision(rotatedShape, targetX, piece.y, boardRef.current)) {
+      soundFX.playRotate();
       setCurrentPiece(prev => ({
         ...prev,
         shape: rotatedShape,
@@ -275,6 +283,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
     
     const piece = currentPieceRef.current;
     if (!checkCollision(piece.shape, piece.x + dir, piece.y, boardRef.current)) {
+      soundFX.playMove();
       setCurrentPiece(prev => ({
         ...prev,
         x: prev.x + dir
@@ -307,6 +316,10 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
     }
 
     if (fullRowIndices.length > 0) {
+      // Trigger neon bloom and line clear fanfare
+      triggerBloom();
+      soundFX.playLineClear();
+
       // Set line clear flash indicators
       setHighlightLineIndices(fullRowIndices);
 
@@ -416,9 +429,11 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
       targetY++;
     }
     
+    soundFX.playDrop();
+    triggerBloom();
     const droppedPiece = { ...piece, y: targetY };
     lockPiece(droppedPiece, boardRef.current);
-  }, [checkCollision, lockPiece, isActionCooldowned]);
+  }, [checkCollision, lockPiece, isActionCooldowned, triggerBloom]);
 
   // Action: Pause Toggle
   const togglePause = useCallback(() => {
@@ -573,8 +588,11 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
       {/* Main Tetris Layout container */}
       <div className="tetris-main-layout">
         
-        {/* Gameboard container */}
-        <div className="tetris-board-container">
+        {/* Gameboard container with 8-bit bloom and CRT scanline FX */}
+        <div className={`tetris-board-container ${isBloomActive ? 'tetris-bloom-flash' : ''}`}>
+          
+          {/* CRT Scanline Overlay */}
+          <div className="tetris-crt-overlay" />
           
           {/* Overlays */}
           {!gameStarted && (

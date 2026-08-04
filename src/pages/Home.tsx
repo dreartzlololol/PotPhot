@@ -6,6 +6,7 @@ import {
   Search, Heart, Navigation, Star, Map as MapIcon, 
   List as ListIcon, X, BookOpen 
 } from 'lucide-react';
+import { TiltCard } from '../components/TiltCard';
 
 interface HomeProps {
   shops: Shop[];
@@ -376,10 +377,10 @@ export const Home: React.FC<HomeProps> = ({
                       onClick={() => handleCardClick(shop)}
                       onDoubleClick={() => handleCardDoubleClick(shop)}
                     >
-                      <div 
-                        className="shop-card glass-panel gamepad-focusable"
+                      <TiltCard 
+                        className="shop-card gamepad-focusable"
                         style={{
-                          border: isActive ? '3px solid var(--primary)' : '1px solid rgba(255,255,255,0.6)',
+                          border: isActive ? '3px solid var(--primary)' : '1.5px solid rgba(245,158,11,0.25)',
                           boxShadow: isActive ? 'var(--glow-green)' : 'var(--card-shadow)',
                         }}
                       >
@@ -418,7 +419,7 @@ export const Home: React.FC<HomeProps> = ({
                             </button>
                           </div>
                         </div>
-                      </div>
+                      </TiltCard>
                     </div>
                   );
                 })}
