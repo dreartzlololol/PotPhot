@@ -37,15 +37,15 @@ export const Account: React.FC<AccountProps> = ({
     <div 
       className="tab-page-container"
       style={{
-        padding: '24px',
+        padding: '24px 24px 100px 24px',
         maxWidth: '680px',
         margin: '0 auto',
         width: '100%',
+        flex: 1,
         display: 'flex',
         flexDirection: 'column',
         gap: '24px',
         overflowY: 'auto',
-        maxHeight: 'calc(100vh - 140px)',
       }}
     >
       {!currentUser ? (
