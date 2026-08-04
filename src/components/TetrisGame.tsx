@@ -441,10 +441,9 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
     }
     
     soundFX.playDrop();
-    triggerBloom();
     const droppedPiece = { ...piece, y: targetY };
     lockPiece(droppedPiece, boardRef.current);
-  }, [checkCollision, lockPiece, isActionCooldowned, triggerBloom]);
+  }, [checkCollision, lockPiece, isActionCooldowned]);
 
   // Action: Pause Toggle
   const togglePause = useCallback(() => {
