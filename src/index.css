@@ -2074,17 +2074,28 @@ body.dark-theme .tetris-pause-overlay {
   box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3) !important;
 }
 
-/* Mobile Touch Controller Styling for Tetris */
+/* Mobile Touch Controller Floating Overlay Styling for Tetris */
 .tetris-mobile-controls-panel {
-  width: 100%;
-  max-width: 480px;
-  margin: 12px auto 0 auto;
-  padding: 14px 16px;
-  border-radius: 20px;
-  background: var(--white);
-  border: 1.5px solid var(--primary-light);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  position: fixed;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 24px);
+  max-width: 440px;
+  z-index: 2500;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 2px solid var(--primary-light);
+  border-radius: 24px;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.22);
+  padding: 12px 14px;
   box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+body.nav-retracted .tetris-mobile-controls-panel {
+  bottom: 18px !important;
 }
 
 .tetris-mobile-btn-grid {

@@ -74,24 +74,89 @@ function getDecalSVGDataURL(decalId: string): string {
   let svgString = '';
   switch (decalId) {
     case 'body-dragon':
-      svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M 25 65 C 20 50, 30 35, 45 35 C 55 35, 60 45, 65 42 C 72 38, 70 25, 82 28 C 88 30, 85 45, 75 48 C 65 52, 55 68, 42 68 C 30 68, 28 58, 25 65 Z" fill="#FFE082" /><path d="M 45,35 Q 38,40 38,48 T 50,55 T 62,48" fill="none" stroke="#FFF59D" stroke-width="3" /></svg>`;
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <defs>
+          <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFE082"/>
+            <stop offset="50%" stop-color="#FFB300"/>
+            <stop offset="100%" stop-color="#FF6F00"/>
+          </linearGradient>
+        </defs>
+        <path d="M 25 65 C 20 50, 30 35, 45 35 C 55 35, 60 45, 65 42 C 72 38, 70 25, 82 28 C 88 30, 85 45, 75 48 C 65 52, 55 68, 42 68 C 30 68, 28 58, 25 65 Z" fill="url(#gold-grad)"/>
+        <path d="M 45,35 Q 38,40 38,48 T 50,55 T 62,48" fill="none" stroke="#FFF59D" stroke-width="3" stroke-linecap="round"/>
+        <path d="M 68,35 Q 60,30 55,20 Q 52,32 68,35 Z" fill="#FF8F00"/>
+        <circle cx="74" cy="35" r="3" fill="#E63946"/>
+      </svg>`;
       break;
     case 'body-lotus':
-      svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M 15 55 C 10 70, 90 70, 85 55 Z" fill="#2E7D32" /><path d="M 50 20 C 40 40, 25 58, 50 68 C 75 58, 60 40, 50 20 Z" fill="#E91E63" /><circle cx="50" cy="58" r="5" fill="#FBC02D" /></svg>`;
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <path d="M 15 55 C 10 70, 90 70, 85 55 C 70 50, 30 50, 15 55 Z" fill="#1B5E20"/>
+        <path d="M 22 56 C 18 68, 82 68, 78 56 C 65 52, 35 52, 22 56 Z" fill="#2E7D32"/>
+        <path d="M 50 20 C 40 40, 25 58, 50 68 C 75 58, 60 40, 50 20 Z" fill="#D81B60"/>
+        <path d="M 50 30 C 38 45, 30 58, 50 68 C 70 58, 62 45, 50 30 Z" fill="#E91E63"/>
+        <path d="M 50 40 C 43 50, 38 60, 50 68 C 62 60, 57 50, 50 40 Z" fill="#F48FB1"/>
+        <circle cx="50" cy="58" r="5" fill="#FBC02D"/>
+      </svg>`;
       break;
     case 'body-phoenix':
-      svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M 12 45 Q 32 15, 55 25 Q 40 38, 12 45 Z" fill="#FF8F00" /><path d="M 12 55 Q 28 68, 50 58 Q 38 48, 12 55 Z" fill="#FF8F00" /></svg>`;
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <path d="M 12 45 Q 32 15, 55 25 Q 40 38, 12 45 Z" fill="#FF8F00"/>
+        <path d="M 12 55 Q 28 68, 50 58 Q 38 48, 12 55 Z" fill="#D84315"/>
+        <path d="M 55 25 C 60 20, 72 20, 75 28 C 70 32, 62 30, 57 30 Z" fill="#FBC02D"/>
+        <path d="M 28 60 Q 42 85, 68 88 Q 48 76, 28 60 Z" fill="#FF8F00"/>
+      </svg>`;
       break;
     case 'body-bamboo':
-      svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="45" y="15" width="8" height="70" fill="#2E7D32" /><path d="M 42 35 C 52 30, 58 20, 53 15 Z" fill="#4CAF50" /></svg>`;
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <rect x="35" y="15" width="8" height="70" rx="3" fill="#2E7D32"/>
+        <rect x="55" y="32" width="7" height="53" rx="3" fill="#388E3C"/>
+        <path d="M 38 30 Q 20 20, 10 30 Q 25 35, 38 30 Z" fill="#4CAF50"/>
+        <path d="M 58 45 Q 75 35, 88 45 Q 70 50, 58 45 Z" fill="#4CAF50"/>
+      </svg>`;
       break;
     case 'body-star':
-      svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M 50 10 C 52 35, 65 48, 90 50 C 65 52, 52 65, 50 90 C 48 65, 35 52, 10 50 C 35 48, 48 35, 50 10 Z" fill="#FFD54F" /></svg>`;
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <polygon points="50,10 63,35 90,38 70,57 75,85 50,72 25,85 30,57 10,38 37,35" fill="#FFD54F" stroke="#FF8F00" stroke-width="3"/>
+      </svg>`;
+      break;
+    case 'rim-gold':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
+        <rect x="0" y="5" width="100" height="10" fill="#FFD700" stroke="#FFA000" stroke-width="2"/>
+      </svg>`;
+      break;
+    case 'rim-dots':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
+        <circle cx="15" cy="10" r="5" fill="#FFF"/><circle cx="35" cy="10" r="5" fill="#FFF"/><circle cx="55" cy="10" r="5" fill="#FFF"/><circle cx="75" cy="10" r="5" fill="#FFF"/><circle cx="95" cy="10" r="5" fill="#FFF"/>
+      </svg>`;
+      break;
+    case 'rim-wave':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
+        <path d="M 0 10 Q 12 2, 25 10 T 50 10 T 75 10 T 100 10" fill="none" stroke="#CD853F" stroke-width="4"/>
+      </svg>`;
+      break;
+    case 'base-cloud':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
+        <path d="M 10 15 C 15 8, 25 8, 30 15 C 35 8, 45 8, 50 15 C 55 8, 65 8, 70 15" fill="none" stroke="#81D4FA" stroke-width="4" stroke-linecap="round"/>
+      </svg>`;
+      break;
+    case 'base-ring':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
+        <line x1="0" y1="5" x2="100" y2="5" stroke="#FFB300" stroke-width="3"/>
+        <line x1="0" y1="15" x2="100" y2="15" stroke="#FFB300" stroke-width="3"/>
+      </svg>`;
+      break;
+    case 'base-flame':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
+        <path d="M 0 18 Q 10 2, 20 18 T 40 18 T 60 18 T 80 18 T 100 18" fill="none" stroke="#FF5722" stroke-width="4"/>
+      </svg>`;
       break;
     default:
-      svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#FFD54F" /></svg>`;
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="35" fill="#FFB300" stroke="#FF6F00" stroke-width="4"/>
+      </svg>`;
+      break;
   }
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svgString);
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
 }
 
 function createTextTexture(text: string, color: string): THREE.Texture {
@@ -105,7 +170,6 @@ function createTextTexture(text: string, color: string): THREE.Texture {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, 256, 64);
-
   const texture = new THREE.CanvasTexture(canvas);
   return texture;
 }
@@ -720,11 +784,13 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
     const radius = sizeVec.x / 2;
 
     equippedDecals.forEach((dec) => {
-      const size = (radius * 0.7) * dec.scale;
+      const size = (radius * 0.9) * dec.scale;
       const decalGeom = new THREE.PlaneGeometry(size, size);
       
       const textureUrl = dec.url || getDecalSVGDataURL(dec.decalId);
-      const texture = new THREE.TextureLoader().load(textureUrl);
+      const texture = new THREE.TextureLoader().load(textureUrl, (loadedTex) => {
+        loadedTex.needsUpdate = true;
+      });
       
       const decalMat = new THREE.MeshStandardMaterial({
         map: texture,
@@ -732,16 +798,19 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
         roughness: roughnessVal,
         metalness: metalnessVal,
         depthWrite: false,
+        depthTest: true,
+        side: THREE.DoubleSide
       });
 
       const decalMesh = new THREE.Mesh(decalGeom, decalMat);
       
       const px = (dec.x / 80) * (radius * 0.8);
       const py = (dec.y / 100) * (sizeVec.y * 0.45);
-      const pz = radius + 0.2; 
+      const pz = radius + 0.35; 
       
       decalMesh.position.set(px, py, pz);
       decalMesh.rotation.z = -THREE.MathUtils.degToRad(dec.rotation);
+      decalMesh.renderOrder = 100;
       
       decalMesh.name = dec.id;
       decalGroup.add(decalMesh);
