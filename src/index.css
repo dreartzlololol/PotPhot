@@ -1,28 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Mitr:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Cozy Garden Fantasy Palette */
-  --primary: #1E5128;
-  --primary-light: #4E9F3D;
-  --primary-glow: rgba(78, 159, 61, 0.2);
-  --primary-glow-strong: rgba(78, 159, 61, 0.4);
-  --clay: #8E5431;
-  --clay-light: #CD853F;
-  --clay-glow: rgba(142, 84, 49, 0.15);
-  --gold: #F4B41A;
-  --gold-light: #F7D070;
-  --gold-glow: rgba(244, 180, 26, 0.3);
-  --sunbeam: rgba(255, 247, 230, 0.6);
-  --bg-cream: #FFFDF9;
-  --text-dark: #2C3E30;
-  --text-muted: #5C6E60;
+  /* Thai Ceramic & Benjarong Heritage Palette */
+  --primary: #154326;           /* Thai Celadon Green */
+  --primary-light: #2D7A47;     /* Emerald Leaf */
+  --primary-glow: rgba(45, 122, 71, 0.25);
+  --primary-glow-strong: rgba(45, 122, 71, 0.45);
+  --clay: #9A3412;              /* Photharam Terracotta Clay */
+  --clay-light: #C2410C;        /* Warm Clay Amber */
+  --clay-glow: rgba(154, 52, 18, 0.2);
+  --gold: #D97706;              /* Benjarong Gold */
+  --gold-light: #F59E0B;        /* Liquid Gold Spark */
+  --gold-glow: rgba(245, 158, 11, 0.4);
+  --sunbeam: rgba(254, 243, 199, 0.7);
+  --bg-cream: #FAF6F0;          /* Thai Silk Cream */
+  --text-dark: #1E293B;         /* Deep Slate */
+  --text-muted: #64748B;
   --white: #ffffff;
-  --card-shadow: 0 12px 30px rgba(30, 81, 40, 0.08), 0 4px 10px rgba(142, 84, 49, 0.04);
-  --premium-shadow: 0 20px 40px rgba(30, 81, 40, 0.12), 0 0 20px rgba(244, 180, 26, 0.1);
-  --glow-green: 0 0 15px rgba(78, 159, 61, 0.6);
-  --glow-gold: 0 0 20px rgba(244, 180, 26, 0.7);
+  --card-shadow: 0 14px 35px rgba(21, 67, 38, 0.1), 0 4px 12px rgba(154, 52, 18, 0.05);
+  --premium-shadow: 0 20px 50px rgba(21, 67, 38, 0.16), 0 0 25px rgba(245, 158, 11, 0.25);
+  --glow-green: 0 0 18px rgba(45, 122, 71, 0.6);
+  --glow-gold: 0 0 24px rgba(245, 158, 11, 0.75);
   
-  --font-sans: 'Outfit', 'Mitr', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Mitr', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 * {
@@ -36,6 +36,9 @@
 
 body {
   background-color: var(--bg-cream);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%239A3412' fill-opacity='0.04'%3E%3Cpath d='M40 0 C45 20, 60 35, 80 40 C60 45, 45 60, 40 80 C35 60, 20 45, 0 40 C20 35, 35 20, 40 0 Z'/%3E%3Ccircle cx='40' cy='40' r='6' fill='%23D97706' fill-opacity='0.06'/%3E%3C/g%3E%3C/svg%3E");
   color: var(--text-dark);
   overflow-x: hidden;
   min-height: 100vh;
@@ -426,15 +429,21 @@ body {
 }
 
 .brand-logo-small {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: var(--white);
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF8EC 100%);
   padding: 4px;
-  box-shadow: 0 4px 10px rgba(30, 81, 40, 0.1);
+  border: 1.5px solid var(--gold-light);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.25s ease;
+}
+
+.brand-logo-small:hover {
+  transform: scale(1.08) rotate(3deg);
 }
 
 .brand-logo-small img {
@@ -1592,14 +1601,14 @@ body {
   z-index: 2000; /* above Leaflet controls and overlays */
   border-radius: 28px 28px 0 0 !important;
   border: none !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 -10px 30px rgba(30, 81, 40, 0.08) !important;
+  border-top: 2px solid var(--gold-light) !important;
+  box-shadow: 0 -12px 35px rgba(21, 67, 38, 0.12), 0 -2px 10px rgba(245, 158, 11, 0.15) !important;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(250, 246, 240, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .bottom-nav-bar.retracted {

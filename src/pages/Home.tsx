@@ -161,9 +161,14 @@ export const Home: React.FC<HomeProps> = ({
           <div className="brand-logo-small">
             <img src="/mascot.png" alt="Logo" />
           </div>
-          <h1 className="brand-name">
-            Pot<span>Phot</span>
-          </h1>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <h1 className="brand-name" style={{ lineHeight: 1.15 }}>
+              Pot<span>Phot</span>
+            </h1>
+            <span style={{ fontSize: '9.5px', fontWeight: 800, color: 'var(--gold)', letterSpacing: '0.5px' }}>
+              🏺 โพธารามเครื่องดินเผา • Benjarong Craft
+            </span>
+          </div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
