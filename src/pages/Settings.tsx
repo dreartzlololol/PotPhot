@@ -3,9 +3,10 @@ import { Settings as SettingsIcon, Sun, Moon, Info, Trash2, ShieldAlert, Gamepad
 
 interface SettingsProps {
   onClearAllData: () => void;
+  onOpenTutorial?: () => void;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ onClearAllData }) => {
+export const Settings: React.FC<SettingsProps> = ({ onClearAllData, onOpenTutorial }) => {
   const [sunlightMode, setSunlightMode] = useState(true);
 
   // Toggle Dark Mode (Moonlight) vs Light Mode (Sunlight) on the body element
@@ -45,6 +46,38 @@ export const Settings: React.FC<SettingsProps> = ({ onClearAllData }) => {
         <SettingsIcon size={24} />
         <span>ตั้งค่าแอปพลิเคชัน</span>
       </h2>
+
+      {/* Tutorial Guide Banner */}
+      {onOpenTutorial && (
+        <div 
+          className="glass-panel" 
+          style={{ 
+            padding: '20px', 
+            background: 'linear-gradient(135deg, rgba(30,81,40,0.08) 0%, rgba(226,184,90,0.15) 100%)',
+            border: '1.5px solid var(--gold-light)',
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            gap: '16px'
+          }}
+        >
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--primary)', marginBottom: '4px' }}>
+              📖 คู่มือการใช้งานเว็บไซต์ (Tutorial Guide)
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              อ่านคำแนะนำสำหรับลูกค้า, เจ้าของร้าน, ไรเดอร์ และการจอยเกม Xbox 360
+            </div>
+          </div>
+          <button 
+            className="premium-btn gamepad-focusable"
+            onClick={onOpenTutorial}
+            style={{ padding: '10px 18px', fontSize: '13px', whiteSpace: 'nowrap' }}
+          >
+            <span>เปิดคู่มือ 🏺</span>
+          </button>
+        </div>
+      )}
 
       {/* Theme Toggles */}
       <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>

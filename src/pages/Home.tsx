@@ -4,7 +4,7 @@ import type { FilterState } from './SearchFilter';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { 
   Search, Heart, Navigation, Star, Map as MapIcon, 
-  List as ListIcon, X 
+  List as ListIcon, X, BookOpen 
 } from 'lucide-react';
 
 interface HomeProps {
@@ -16,6 +16,7 @@ interface HomeProps {
   setActiveShopId: (id: string | null) => void;
   filters: FilterState;
   pendingOrders?: any[];
+  onOpenTutorial?: () => void;
 }
 
 const CATEGORIES = [
@@ -36,6 +37,7 @@ export const Home: React.FC<HomeProps> = ({
   setActiveShopId,
   filters,
   pendingOrders = [],
+  onOpenTutorial,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -164,17 +166,45 @@ export const Home: React.FC<HomeProps> = ({
           </h1>
         </div>
 
-        <div className="search-container">
-          <div className="search-icon-wrapper">
-            <Search size={20} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="search-container">
+            <div className="search-icon-wrapper">
+              <Search size={20} />
+            </div>
+            <input
+              type="text"
+              placeholder="ค้นหาร้านกระถางลายมังกร, ต้นไม้, ของแต่งสวน..."
+              className="search-input gamepad-focusable"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            placeholder="ค้นหาร้านกระถางลายมังกร, ต้นไม้, ของแต่งสวน..."
-            className="search-input gamepad-focusable"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+
+          {onOpenTutorial && (
+            <button
+              onClick={onOpenTutorial}
+              className="gamepad-focusable"
+              title="คู่มือการใช้งานเว็บไซต์"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '14px',
+                background: 'var(--gold-glow)',
+                border: '1px solid var(--gold-light)',
+                color: 'var(--clay)',
+                fontWeight: 700,
+                fontSize: '13px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
+              }}
+            >
+              <BookOpen size={16} />
+              <span className="hide-mobile">คู่มือ</span>
+            </button>
+          )}
         </div>
       </header>
 

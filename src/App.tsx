@@ -17,6 +17,7 @@ import type { Shop, Review } from './data/shops';
 import { GamepadManager } from './components/GamepadManager';
 import { BackgroundMusic } from './components/BackgroundMusic';
 import type { UserProfile } from './types/auth';
+import { UserTutorialModal } from './components/UserTutorialModal';
 
 function App() {
   const [page, setPage] = useState<'onboarding' | 'home'>('onboarding');
@@ -27,6 +28,7 @@ function App() {
   const [activeShopId, setActiveShopId] = useState<string | null>(null);
   const [customPots, setCustomPots] = useState<CustomPot[]>([]);
   const [userPoints, setUserPoints] = useState<number>(15); // Starter points
+  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
 
   // Load shops from database
   useEffect(() => {
@@ -300,6 +302,7 @@ function App() {
                 setActiveShopId={setActiveShopId}
                 filters={filters}
                 pendingOrders={pendingOrders}
+                onOpenTutorial={() => setIsTutorialOpen(true)}
               />
             )}
             {activeTab === 'search' && (
@@ -332,7 +335,10 @@ function App() {
               />
             )}
             {activeTab === 'settings' && (
-              <Settings onClearAllData={handleClearAllData} />
+              <Settings 
+                onClearAllData={handleClearAllData} 
+                onOpenTutorial={() => setIsTutorialOpen(true)}
+              />
             )}
           </div>
 
@@ -357,6 +363,12 @@ function App() {
           currentUser={currentUser}
         />
       )}
+
+      {/* Interactive User Tutorial Modal */}
+      <UserTutorialModal 
+        isOpen={isTutorialOpen} 
+        onClose={() => setIsTutorialOpen(false)} 
+      />
 
 
     </>
