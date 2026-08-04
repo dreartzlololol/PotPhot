@@ -1,8 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import type { Shop } from '../data/shops';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ZoomIn, ZoomOut, Compass } from 'lucide-react';
+import { ZoomIn, ZoomOut, Compass, Layers, Sun, Moon, Globe, CloudSun } from 'lucide-react';
 
 interface InteractiveMapProps {
   shops: Shop[];
@@ -13,20 +13,37 @@ interface InteractiveMapProps {
 
 const PHOTHARAM_CENTER: [number, number] = [13.685, 99.845];
 
-// Custom Leaflet DivIcon generator for Dragon Pots
+type MapStyleType = 'terracotta' | 'satellite' | 'moonlight';
+
+const TILE_LAYERS: Record<MapStyleType, { url: string; attr: string }> = {
+  terracotta: {
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attr: '&copy; CartoDB Voyager',
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attr: '&copy; Esri World Imagery',
+  },
+  moonlight: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attr: '&copy; CartoDB Dark Matter',
+  },
+};
+
+// Custom Leaflet DivIcon generator for Dragon Pots with Benjarong Gold Aura
 const createPotIcon = (isActive: boolean, shopName: string, coverImage: string) => {
   return L.divIcon({
     className: `map-pin-leaflet-wrapper ${isActive ? 'active' : ''}`,
     html: `
-      <div class="pin-icon-pot">
+      <div class="pin-icon-pot" style="${isActive ? 'transform: scale(1.25); filter: drop-shadow(0 0 16px #F59E0B);' : ''}">
         <div class="pin-pot-rim"></div>
-        <div class="pin-pot-body" style="overflow: hidden;">
+        <div class="pin-pot-body" style="overflow: hidden; border: 2px solid #F59E0B;">
           <img src="${coverImage}" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
         <div class="pin-glow-effect"></div>
       </div>
-      <div class="leaflet-pin-tooltip" style="display: ${isActive ? 'block' : 'none'}">
-        ${shopName.split(' (')[0]}
+      <div class="leaflet-pin-tooltip" style="display: ${isActive ? 'block' : 'none'}; font-weight: 800; background: rgba(21,67,38,0.95); border: 1.5px solid #F59E0B; color: #FFD700; border-radius: 12px; padding: 4px 10px; font-size: 11px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
+        🏺 ${shopName.split(' (')[0]}
       </div>
     `,
     iconSize: [44, 48],
@@ -41,14 +58,14 @@ const createOrderAlertIcon = (potName: string, price: number) => {
     html: `
       <div class="pin-icon-order-alert" style="position: relative; animation: sparkle-glow 1.5s infinite alternate;">
         <div class="alert-exclamation" style="position: absolute; top: -10px; right: -10px; background: #FF4757; color: white; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">!</div>
-        <div class="pin-order-glow" style="width: 32px; height: 32px; border-radius: 50%; background: radial-gradient(circle, #FFA500 0%, #FF4757 100%); border: 2.5px solid white; box-shadow: 0 4px 10px rgba(255,71,87,0.4); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">🏺</div>
+        <div class="pin-order-glow" style="width: 34px; height: 34px; border-radius: 50%; background: radial-gradient(circle, #FFA500 0%, #FF4757 100%); border: 2.5px solid white; box-shadow: 0 4px 14px rgba(255,71,87,0.5); display: flex; align-items: center; justify-content: center; color: white; font-size: 15px;">🏺</div>
       </div>
-      <div class="leaflet-pin-tooltip order-tooltip" style="display: block; background: rgba(255,71,87,0.95); border-color: #FF4757; color: white; font-weight: 700; white-space: nowrap; font-size: 11px; padding: 2px 6px; border-radius: 6px;">
-        สั่งปั้น: ${potName.substring(0, 8)} • ฿${price}
+      <div class="leaflet-pin-tooltip order-tooltip" style="display: block; background: rgba(255,71,87,0.95); border-color: #FF4757; color: white; font-weight: 800; white-space: nowrap; font-size: 11px; padding: 3px 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(255,71,87,0.4);">
+        สั่งปั้น: ${potName.substring(0, 10)} • ฿${price}
       </div>
     `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
+    iconSize: [34, 34],
+    iconAnchor: [17, 34],
   });
 };
 
@@ -60,14 +77,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const markersRef = useRef<{ [key: string]: L.Marker }>({});
   const orderMarkersRef = useRef<L.Marker[]>([]);
 
+  const [mapStyle, setMapStyle] = useState<MapStyleType>('terracotta');
+  const [showLayerMenu, setShowLayerMenu] = useState<boolean>(false);
 
   // Initialize Leaflet Map
   useEffect(() => {
     if (mapContainerRef.current && !leafletMapRef.current) {
-      leafletMapRef.current = L.map(mapContainerRef.current, {
+      const map = L.map(mapContainerRef.current, {
         center: PHOTHARAM_CENTER,
         zoom: 13,
         zoomControl: false,
@@ -75,10 +95,23 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         maxZoom: 18,
       });
 
-      // Cozy colored CartoDB Voyager tiles (warm roads, leafy green parks)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; CartoDB',
-      }).addTo(leafletMapRef.current);
+      leafletMapRef.current = map;
+
+      // Add initial Tile Layer
+      const initialConfig = TILE_LAYERS['terracotta'];
+      tileLayerRef.current = L.tileLayer(initialConfig.url, {
+        attribution: initialConfig.attr,
+      }).addTo(map);
+
+      // Add Historic Photharam Pottery Heritage Circle Zone
+      L.circle(PHOTHARAM_CENTER, {
+        color: '#D97706',
+        fillColor: '#F59E0B',
+        fillOpacity: 0.08,
+        weight: 2,
+        dashArray: '6, 8',
+        radius: 2800,
+      }).addTo(map);
     }
 
     return () => {
@@ -88,6 +121,23 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       }
     };
   }, []);
+
+  // Handle Tile Layer Switch
+  const handleSwitchMapStyle = (newStyle: MapStyleType) => {
+    setMapStyle(newStyle);
+    setShowLayerMenu(false);
+    const map = leafletMapRef.current;
+    if (!map) return;
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    const config = TILE_LAYERS[newStyle];
+    tileLayerRef.current = L.tileLayer(config.url, {
+      attribution: config.attr,
+    }).addTo(map);
+  };
 
   // Sync Markers and selection status
   useEffect(() => {
@@ -164,17 +214,17 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         }).addTo(map);
 
         marker.bindPopup(`
-          <div style="font-family: 'Outfit', sans-serif; padding: 6px; width: 180px;">
+          <div style="font-family: 'Mitr', sans-serif; padding: 6px; width: 190px;">
             <h4 style="margin: 0 0 6px 0; color: #FF4757; font-size: 13px; display: flex; align-items: center; gap: 4px;">
               <span>📢 ประกาศสั่งปั้นบอร์ดกลาง</span>
             </h4>
-            <div style="font-weight: 800; font-size: 13px; margin-bottom: 4px; color: #2C3E30;">${ord.potName}</div>
-            <div style="font-size: 11px; color: #555; margin-bottom: 6px;">
+            <div style="font-weight: 800; font-size: 13px; margin-bottom: 4px; color: #1E293B;">${ord.potName}</div>
+            <div style="font-size: 11px; color: #64748B; margin-bottom: 6px;">
               ผู้สั่ง: ${ord.customerName}<br/>
-              ราคาใบสั่งทำ: <strong style="color: #4E9F3D; font-size: 13px;">฿${ord.price}</strong>
+              ราคาใบสั่งทำ: <strong style="color: #2D7A47; font-size: 13px;">฿${ord.price}</strong>
             </div>
             <div style="font-size: 10px; color: #FF4757; font-style: italic; font-weight: 600;">
-              * หน้าร้านค้ากดยอมรับปั้นได้จากบอร์ดแดชบอร์ดร้านค้า
+              * หน้าร้านค้ากดยอมรับปั้นได้จากแดชบอร์ดร้านค้า
             </div>
           </div>
         `);
@@ -190,7 +240,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       const map = leafletMapRef.current;
       if (!map) return;
       const customEvent = e as CustomEvent<{ x: number; y: number }>;
-      // Pan map by detailed stick movement
       map.panBy([customEvent.detail.x * 20, customEvent.detail.y * 20], { animate: false });
     };
 
@@ -242,7 +291,42 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         style={{ width: '100%', height: '100%' }}
       />
 
-      {/* Floating Interactive Map Controls */}
+      {/* 🌤️ Aesthetic Weather & Heritage Status Badge (Top-Left Overlay) */}
+      <div
+        className="glass-panel"
+        style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          zIndex: 1000,
+          padding: '10px 16px',
+          background: 'rgba(250, 246, 240, 0.92)',
+          backdropFilter: 'blur(16px)',
+          border: '1.5px solid var(--gold-light)',
+          borderRadius: '20px',
+          boxShadow: '0 8px 25px rgba(21, 67, 38, 0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          pointerEvents: 'auto',
+          animation: 'float 4s ease-in-out infinite',
+        }}
+      >
+        <CloudSun size={20} style={{ color: 'var(--gold)' }} />
+        <div>
+          <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span>โพธาราม • 29°C ลมพัดอบอุ่น</span>
+            <span style={{ fontSize: '10px', color: 'var(--gold)', background: 'rgba(245, 158, 11, 0.15)', padding: '1px 6px', borderRadius: '10px' }}>
+              อู่ปั้นดิน 🏺
+            </span>
+          </div>
+          <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '1px' }}>
+            เขตชุมชนหัตถกรรมเครื่องดินเผามังกรสยาม
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Interactive Map Controls & Style Switcher (Top-Right Overlay) */}
       <div
         className="map-controls glass-panel"
         style={{
@@ -253,11 +337,36 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           flexDirection: 'column',
           gap: '8px',
           padding: '8px',
-          borderRadius: '16px',
-          zIndex: 1000, // Make sure controls sit above Leaflet layers
+          borderRadius: '18px',
+          zIndex: 1000,
           pointerEvents: 'auto',
+          border: '1.5px solid var(--gold-light)',
+          boxShadow: '0 8px 25px rgba(21, 67, 38, 0.15)',
         }}
       >
+        {/* Layer Switcher Toggle Button */}
+        <button
+          onClick={() => setShowLayerMenu(!showLayerMenu)}
+          style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '12px',
+            border: 'none',
+            background: showLayerMenu ? 'var(--primary)' : 'var(--white)',
+            color: showLayerMenu ? '#FFD700' : 'var(--primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            transition: 'all 0.25s ease',
+          }}
+          title="สลับโหมดสไตล์แผนที่"
+        >
+          <Layers size={20} />
+        </button>
+
+        {/* Zoom In */}
         <button
           onClick={() => handleZoom('in')}
           style={{
@@ -271,13 +380,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-            transition: 'all 0.2s',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            transition: 'all 0.25s ease',
           }}
-          title="Zoom In"
+          title="ขยายแผนที่ (Zoom In)"
         >
           <ZoomIn size={20} />
         </button>
+
+        {/* Zoom Out */}
         <button
           onClick={() => handleZoom('out')}
           style={{
@@ -291,13 +402,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-            transition: 'all 0.2s',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            transition: 'all 0.25s ease',
           }}
-          title="Zoom Out"
+          title="ย่อแผนที่ (Zoom Out)"
         >
           <ZoomOut size={20} />
         </button>
+
+        {/* Reset View Compass */}
         <button
           onClick={handleResetPan}
           style={{
@@ -311,15 +424,108 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-            transition: 'all 0.2s',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+            transition: 'all 0.25s ease',
           }}
-          title="Reset View"
+          title="รีเซ็ตมุมกล้องนำทาง (Reset View)"
         >
           <Compass size={20} />
         </button>
       </div>
 
+      {/* 🗺️ Interactive Map Layer Switcher Floating Menu */}
+      {showLayerMenu && (
+        <div
+          className="glass-panel"
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '76px',
+            zIndex: 1000,
+            padding: '12px',
+            borderRadius: '18px',
+            background: 'rgba(250, 246, 240, 0.96)',
+            backdropFilter: 'blur(16px)',
+            border: '1.5px solid var(--gold-light)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            width: '180px',
+            animation: 'scaleUpTour 0.2s ease-out',
+          }}
+        >
+          <div style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '2px' }}>
+            🗺️ สไตล์แผนที่ (Map Styles):
+          </div>
+
+          {/* Terracotta Craft Map */}
+          <button
+            type="button"
+            onClick={() => handleSwitchMapStyle('terracotta')}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '12px',
+              border: mapStyle === 'terracotta' ? '2px solid var(--primary-light)' : '1px solid rgba(0,0,0,0.1)',
+              background: mapStyle === 'terracotta' ? 'rgba(45,122,71,0.12)' : 'white',
+              color: mapStyle === 'terracotta' ? 'var(--primary)' : 'var(--text-dark)',
+              fontWeight: 700,
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <Sun size={16} style={{ color: 'var(--gold)' }} />
+            <span>🌱 สยามดินเผา</span>
+          </button>
+
+          {/* Satellite Map */}
+          <button
+            type="button"
+            onClick={() => handleSwitchMapStyle('satellite')}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '12px',
+              border: mapStyle === 'satellite' ? '2px solid var(--primary-light)' : '1px solid rgba(0,0,0,0.1)',
+              background: mapStyle === 'satellite' ? 'rgba(45,122,71,0.12)' : 'white',
+              color: mapStyle === 'satellite' ? 'var(--primary)' : 'var(--text-dark)',
+              fontWeight: 700,
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <Globe size={16} style={{ color: '#0288D1' }} />
+            <span>🛰️ ดาวเทียม HD</span>
+          </button>
+
+          {/* Moonlight Dark Map */}
+          <button
+            type="button"
+            onClick={() => handleSwitchMapStyle('moonlight')}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '12px',
+              border: mapStyle === 'moonlight' ? '2px solid var(--primary-light)' : '1px solid rgba(0,0,0,0.1)',
+              background: mapStyle === 'moonlight' ? 'rgba(45,122,71,0.12)' : 'white',
+              color: mapStyle === 'moonlight' ? 'var(--primary)' : 'var(--text-dark)',
+              fontWeight: 700,
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <Moon size={16} style={{ color: '#7E57C2' }} />
+            <span>🌙 แสงจันทร์</span>
+          </button>
+        </div>
+      )}
 
     </div>
   );
