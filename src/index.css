@@ -50,20 +50,32 @@ body {
   flex-direction: column;
 }
 
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-cream);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--clay-light);
-  border-radius: 4px;
-}
 ::-webkit-scrollbar-thumb:hover {
   background: var(--clay);
+}
+
+/* 🌟 APP-WIDE UNIVERSAL BUTTON DESIGN ENHANCEMENTS 🌟 */
+button {
+  font-family: 'Outfit', 'Mitr', sans-serif;
+  font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 14px;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.97) !important;
+  filter: brightness(0.96);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
 }
 
 /* Animations */
