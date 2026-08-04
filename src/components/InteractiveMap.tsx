@@ -30,6 +30,13 @@ const TILE_LAYERS: Record<MapStyleType, { url: string; attr: string }> = {
   },
 };
 
+const CULTURAL_LANDMARKS = [
+  { title: 'วัดขนอน หนังใหญ่', emoji: '🎨', lat: 13.720, lng: 99.850 },
+  { title: 'ตลาดเก่า 119 ปี โพธาราม', emoji: '🚣', lat: 13.690, lng: 99.855 },
+  { title: 'คาเฟ่โรงปั้นโพธาราม', emoji: '☕', lat: 13.670, lng: 99.835 },
+  { title: 'ศูนย์ปั้นกระถางมังกร', emoji: '🏺', lat: 13.705, lng: 99.825 },
+];
+
 // Custom Leaflet DivIcon generator for Dragon Pots with Benjarong Gold Aura
 const createPotIcon = (isActive: boolean, shopName: string, coverImage: string) => {
   return L.divIcon({
@@ -69,6 +76,45 @@ const createOrderAlertIcon = (potName: string, price: number) => {
   });
 };
 
+// Custom Leaflet DivIcon generator for Aesthetic Photharam Cultural Landmarks
+const createLandmarkIcon = (title: string, iconEmoji: string) => {
+  return L.divIcon({
+    className: 'map-landmark-leaflet-wrapper',
+    html: `
+      <div style="position: relative; display: flex; flex-direction: column; align-items: center; pointer-events: none;">
+        <div style="position: absolute; width: 34px; height: 34px; border-radius: 50%; background: rgba(245, 158, 11, 0.4); animation: mapPulseRing 2.2s infinite ease-out;"></div>
+        <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #154326, #2D7A47); border: 2px solid #FFD700; box-shadow: 0 4px 14px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 15px; z-index: 2;">
+          ${iconEmoji}
+        </div>
+        <div style="background: rgba(21, 67, 38, 0.95); border: 1.5px solid #FFD700; color: #FFD700; font-weight: 800; font-size: 10.5px; padding: 2px 8px; border-radius: 10px; margin-top: 4px; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.25);">
+          ${title}
+        </div>
+      </div>
+    `,
+    iconSize: [36, 50],
+    iconAnchor: [18, 25],
+  });
+};
+
+// Custom Animated Rider Scooter Icon
+const createRiderIcon = () => {
+  return L.divIcon({
+    className: 'map-rider-leaflet-wrapper',
+    html: `
+      <div style="position: relative; display: flex; flex-direction: column; align-items: center; pointer-events: none;">
+        <div style="background: linear-gradient(135deg, #D97706, #F59E0B); border: 2px solid #FFFFFF; color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 6px 16px rgba(217,119,6,0.5); animation: float 2.5s infinite ease-in-out;">
+          🛵
+        </div>
+        <div style="background: rgba(217, 119, 6, 0.95); border: 1px solid #FFFFFF; color: #FFFFFF; font-weight: 800; font-size: 9.5px; padding: 2px 7px; border-radius: 8px; margin-top: 2px; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+          🛵💨 ไรเดอร์ส่งกระถาง
+        </div>
+      </div>
+    `,
+    iconSize: [36, 48],
+    iconAnchor: [18, 24],
+  });
+};
+
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   shops,
   activeShopId,
@@ -102,10 +148,38 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       tileLayerRef.current = L.tileLayer(initialConfig.url, {
         attribution: initialConfig.attr,
       }).addTo(map);
+
+      // Render Pure Aesthetic Photharam Cultural Landmarks
+      CULTURAL_LANDMARKS.forEach((lm) => {
+        L.marker([lm.lat, lm.lng], {
+          icon: createLandmarkIcon(lm.title, lm.emoji),
+          interactive: false,
+        }).addTo(map);
+      });
+
+      // Render Pure Aesthetic Moving Rider Marker
+      const riderMarker = L.marker([13.680, 99.840], {
+        icon: createRiderIcon(),
+        interactive: false,
+      }).addTo(map);
+
+      // Animate rider along Photharam road
+      let step = 0;
+      const riderInterval = setInterval(() => {
+        step += 0.05;
+        const latOffset = Math.sin(step) * 0.008;
+        const lngOffset = Math.cos(step) * 0.008;
+        riderMarker.setLatLng([13.685 + latOffset, 99.845 + lngOffset]);
+      }, 500);
+
+      (map as any)._riderInterval = riderInterval;
     }
 
     return () => {
       if (leafletMapRef.current) {
+        if ((leafletMapRef.current as any)._riderInterval) {
+          clearInterval((leafletMapRef.current as any)._riderInterval);
+        }
         leafletMapRef.current.remove();
         leafletMapRef.current = null;
       }
@@ -274,7 +348,13 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+      {/* 👑 Pure Aesthetic Ornate Thai Corner Flourishes */}
+      <div className="map-corner-flourish map-corner-flourish-tl" />
+      <div className="map-corner-flourish map-corner-flourish-tr" />
+      <div className="map-corner-flourish map-corner-flourish-bl" />
+      <div className="map-corner-flourish map-corner-flourish-br" />
+
       {/* Leaflet container hook */}
       <div 
         ref={mapContainerRef} 
@@ -400,7 +480,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           <ZoomOut size={20} />
         </button>
 
-        {/* Reset View Compass */}
+        {/* Reset View Compass with Rotating Benjarong Dragon Ring */}
         <button
           onClick={handleResetPan}
           style={{
@@ -419,7 +499,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           }}
           title="รีเซ็ตมุมกล้องนำทาง (Reset View)"
         >
-          <Compass size={20} />
+          <Compass size={20} className="thai-dragon-compass-inner" />
         </button>
       </div>
 

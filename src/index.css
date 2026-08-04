@@ -87,6 +87,55 @@ body {
   animation: goldShimmerSweep 4s infinite linear;
 }
 
+/* 👑 PURE AESTHETIC THAI BENJARONG ORNAMENTS */
+@keyframes compassSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes mapPulseRing {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.thai-dragon-compass {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.25) 0%, rgba(21, 67, 38, 0.85) 100%);
+  border: 2px solid #F59E0B;
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.45), inset 0 0 10px rgba(255, 215, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFD700;
+  position: relative;
+}
+
+.thai-dragon-compass-inner {
+  animation: compassSpin 20s linear infinite;
+}
+
+/* Ornate Thai Corner Flourishes */
+.map-corner-flourish {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+  z-index: 1001;
+  opacity: 0.85;
+}
+.map-corner-flourish-tl { top: 10px; left: 10px; border-top: 3px solid #D97706; border-left: 3px solid #D97706; border-top-left-radius: 12px; }
+.map-corner-flourish-tr { top: 10px; right: 10px; border-top: 3px solid #D97706; border-right: 3px solid #D97706; border-top-right-radius: 12px; }
+.map-corner-flourish-bl { bottom: 10px; left: 10px; border-bottom: 3px solid #D97706; border-left: 3px solid #D97706; border-bottom-left-radius: 12px; }
+.map-corner-flourish-br { bottom: 10px; right: 10px; border-bottom: 3px solid #D97706; border-right: 3px solid #D97706; border-bottom-right-radius: 12px; }
+
 @keyframes scaleUpTour {
   0% {
     opacity: 0;
