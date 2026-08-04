@@ -18,6 +18,9 @@ export interface Shop {
   distance: string;
   lat: number; // Latitude coordinate
   lng: number; // Longitude coordinate
+  shopThumbnail?: string;
+  shopLocation?: { lat: number; lng: number } | null;
+  shopAddress?: string;
   address: string;
   openStatus: string;
   isOpen: boolean;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { ShopProfile } from '../types/auth';
-import { Store, LogOut, TrendingUp, Package, Clock, MapPin, X, Check, Plus, Edit2, Trash2, Image as ImageIcon, UploadCloud } from 'lucide-react';
+import { Store, LogOut, TrendingUp, Package, Clock, MapPin, X, Check, Plus, Edit2, Trash2, Image as ImageIcon, UploadCloud, ShoppingBag } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -434,6 +434,71 @@ export const ShopDashboard: React.FC<ShopDashboardProps> = ({ user, onLogout, on
   const [tempAddress, setTempAddress] = useState<string>('');
   const [isSearching, setIsSearching] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const [unlockShopName, setUnlockShopName] = useState(user.shopName || '');
+
+  const [incomingOrders, setIncomingOrders] = useState<any[]>([]);
+
+  const loadIncomingOrders = async () => {
+    try {
+      const res = await fetch(`/api/orders?shopId=${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setIncomingOrders(data.orders.filter((o: any) => o.status !== 'delivered' && o.status !== 'claimed'));
+      }
+    } catch (err) {
+      console.error('Failed to load incoming orders:', err);
+    }
+  };
+
+  useEffect(() => {
+    loadIncomingOrders();
+    const interval = setInterval(loadIncomingOrders, 5000);
+    return () => clearInterval(interval);
+  }, [user.id]);
+
+  const handleAdvanceStatus = async (orderId: string, currentStatus: string) => {
+    let nextStatus = '';
+    let progress = 0;
+    
+    if (currentStatus === 'pending') {
+      nextStatus = 'accepted';
+      progress = 25;
+    } else if (currentStatus === 'accepted') {
+      nextStatus = 'shaping';
+      progress = 50;
+    } else if (currentStatus === 'shaping') {
+      nextStatus = 'baking';
+      progress = 75;
+    } else if (currentStatus === 'baking') {
+      nextStatus = 'ready';
+      progress = 100;
+    } else {
+      return;
+    }
+
+    try {
+      const bodyPayload: any = { status: nextStatus, progress };
+      const orderToAdvance = incomingOrders.find(ord => ord.id === orderId);
+      if (orderToAdvance && orderToAdvance.shopId === 'global') {
+        bodyPayload.shopId = user.id;
+        bodyPayload.shopName = user.shopName;
+      }
+
+      const res = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload)
+      });
+      if (res.ok) {
+        loadIncomingOrders();
+      } else {
+        alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+    }
+  };
 
   const salesHistory = user.salesHistory || [
     { id: '1', potName: 'กระถางดินเผาลายมังกร (ใหญ่)', price: 350, date: '2023-10-25', customerName: 'สมปอง รักดี' },
@@ -528,6 +593,134 @@ export const ShopDashboard: React.FC<ShopDashboardProps> = ({ user, onLogout, on
       alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
     }
   };
+
+  const isShopUnlocked = Boolean(user.shopAddress && user.shopAddress.trim() !== '' && user.shopLocation);
+
+  if (!isShopUnlocked) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Store size={24} />
+            <span>แดชบอร์ดร้านค้า</span>
+          </h2>
+          <button 
+            onClick={onLogout}
+            style={{ background: 'none', border: 'none', color: '#E63946', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, cursor: 'pointer' }}
+          >
+            <LogOut size={18} />
+            <span>ออกจากระบบ</span>
+          </button>
+        </div>
+
+        <div className="glass-panel" style={{ padding: '32px 24px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--clay-glow)', border: '2px dashed var(--clay-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--clay)' }}>
+            <Store size={40} />
+          </div>
+
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '16px', background: 'var(--clay-glow)', color: 'var(--clay)', fontSize: '12px', fontWeight: 700, marginBottom: '8px' }}>
+              <span>🔒 ปลดล็อกบทบาทเจ้าของร้านค้า</span>
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--primary)' }}>เปิดร้านค้าและปักหมุดบนแผนที่</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', maxWidth: '440px', margin: '8px auto 0' }}>
+              ระบุที่อยู่ร้านค้าและปักหมุดพิกัดบนแผนที่ PotPhot Map เพื่อให้ลูกค้านำทางมาร้าน และสั่งซื้อกระถางของคุณได้ทันที!
+            </p>
+          </div>
+
+          <div style={{ width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left', marginTop: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)' }}>ชื่อร้านค้า / Shop Name</label>
+              <input 
+                type="text" 
+                value={unlockShopName} 
+                onChange={e => setUnlockShopName(e.target.value)} 
+                placeholder="เช่น ร้านกระถางดินเผาตาชู"
+                style={{ padding: '12px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)', outline: 'none', fontSize: '14px' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)' }}>ที่อยู่หน้าร้าน / Address</label>
+              <input 
+                type="text" 
+                value={tempAddress} 
+                onChange={e => setTempAddress(e.target.value)} 
+                placeholder="เช่น 124 ถ.พิทักษ์พนมมาศ ต.โพธาราม อ.โพธาราม จ.ราชบุรี"
+                style={{ padding: '12px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.1)', outline: 'none', fontSize: '14px' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)' }}>ปักหมุดตำแหน่งร้านบนแผนที่ (คลิกบนแผนที่เพื่อเลือกพิกัด)</label>
+              <MapPicker initialLocation={tempLocation} onLocationSelect={(loc) => setTempLocation(loc)} />
+              {tempLocation && (
+                <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, marginTop: '4px' }}>
+                  📍 พิกัดที่เลือก: {tempLocation.lat.toFixed(4)}, {tempLocation.lng.toFixed(4)}
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={async () => {
+                if (!unlockShopName.trim()) return alert('กรุณากรอกชื่อร้านค้า');
+                if (!tempAddress.trim()) return alert('กรุณากรอกที่อยู่ร้านค้า');
+                if (!tempLocation) return alert('กรุณาคลิกปักหมุดพิกัดบนแผนที่');
+
+                try {
+                  // Save shop profile details
+                  await fetch(`/api/shops/${user.id}/profile`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ shopName: unlockShopName, shopDescription: user.shopDescription || 'จำหน่ายกระถางดินเผาคุณภาพ', shopThumbnail: user.shopThumbnail })
+                  });
+                  // Save shop status and location
+                  const res = await fetch(`/api/shops/${user.id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ isOpen: true, shopLocation: tempLocation, shopAddress: tempAddress })
+                  });
+                  if (res.ok) {
+                    onUpdateUser({ 
+                      ...user, 
+                      shopName: unlockShopName, 
+                      isOpen: true, 
+                      shopLocation: tempLocation, 
+                      shopAddress: tempAddress 
+                    });
+                    alert('เปิดร้านค้าและปลดล็อกบทบาทเจ้าของร้านเรียบร้อยแล้ว! 🏪🎉');
+                  } else {
+                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                  }
+                } catch (err) {
+                  alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+                }
+              }}
+              style={{ 
+                marginTop: '8px',
+                padding: '14px',
+                background: 'var(--primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '12px',
+                fontWeight: 700,
+                fontSize: '15px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: 'var(--card-shadow)'
+              }}
+            >
+              <MapPin size={18} />
+              <span>📍 ปักหมุดที่ตั้งและปลดล็อกหน้าร้านค้า</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -657,6 +850,81 @@ export const ShopDashboard: React.FC<ShopDashboardProps> = ({ user, onLogout, on
             <span style={{ fontSize: '24px', fontWeight: 700, color: 'var(--primary-light)', marginTop: '8px' }}>{salesHistory.length} ชิ้น</span>
           </div>
         </div>
+      </div>
+
+      {/* Incoming Orders Section */}
+      <div>
+        <h3 style={{ fontSize: '17px', fontWeight: 700, color: 'var(--primary)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShoppingBag size={18} />
+          <span>คำสั่งซื้อรอการจัดทำของร้าน ({incomingOrders.length})</span>
+        </h3>
+        {incomingOrders.length === 0 ? (
+          <div className="glass-panel" style={{ padding: '24px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+            🎉 ไม่มีคำสั่งซื้อที่รอดำเนินการในขณะนี้
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+            {incomingOrders.map(o => {
+              const getStatusBtnLabel = (status: string) => {
+                switch (status) {
+                  case 'pending': return 'ยอมรับออร์เดอร์ 📥';
+                  case 'accepted': return 'เริ่มนวดดินขึ้นรูป 🧱';
+                  case 'shaping': return 'นำเข้าเตาเผาไฟ 🔥';
+                  case 'baking': return 'อบแห้งเสร็จพร้อมส่งมอบ 📦';
+                  case 'ready': return 'รอไรเดอร์เข้ารับส่งของ... 🏍️';
+                  case 'picked_up': return 'กำลังเดินทางจัดส่ง... 🏍️';
+                  default: return 'ดำเนินการต่อ';
+                }
+              };
+              const isCustom = o.potDetails !== null;
+              
+              return (
+                <div key={o.id} className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', borderLeft: isCustom ? '4px solid var(--clay)' : '4px solid var(--primary-light)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>
+                        {o.potName} 
+                        {isCustom && <span style={{ fontSize: '10px', background: 'rgba(200,100,50,0.1)', color: 'var(--clay)', padding: '2px 6px', borderRadius: '10px', marginLeft: '6px' }}>งานปั้นพิเศษ 🎨</span>}
+                        {o.shopId === 'global' && <span style={{ fontSize: '10px', background: 'rgba(30,100,200,0.1)', color: '#1E40AF', padding: '2px 6px', borderRadius: '10px', marginLeft: '6px' }}>บอร์ดกลาง 🌐</span>}
+                      </h4>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>
+                        ลูกค้า: {o.customerName} ({o.customerPhone}) • ที่อยู่จัดส่ง: {o.address}
+                      </div>
+                      {isCustom && o.potDetails.notes && (
+                        <div style={{ fontSize: '11px', color: 'var(--clay)', marginTop: '4px', background: 'rgba(200,100,50,0.02)', padding: '6px 10px', borderRadius: '6px', borderLeft: '2px solid var(--clay)' }}>
+                          📝 <strong>หมายเหตุลูกค้า:</strong> {o.potDetails.notes}
+                        </div>
+                      )}
+                    </div>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary-light)', background: 'rgba(30,81,40,0.05)', padding: '3px 8px', borderRadius: '8px' }}>
+                      {o.status.toUpperCase()}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.03)', paddingTop: '8px', fontSize: '12px' }}>
+                    <div>
+                      <span style={{ color: 'var(--text-muted)' }}>จำนวน: {o.quantity} ใบ • </span>
+                      <span style={{ fontWeight: 700, color: 'var(--primary)' }}>฿{(o.price * o.quantity).toLocaleString()}</span>
+                    </div>
+
+                    {o.status !== 'ready' && o.status !== 'picked_up' ? (
+                      <button 
+                        onClick={() => handleAdvanceStatus(o.id, o.status)}
+                        style={{ padding: '6px 12px', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        {getStatusBtnLabel(o.status)}
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', fontWeight: 600 }}>
+                        {getStatusBtnLabel(o.status)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div>

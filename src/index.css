@@ -155,7 +155,11 @@ body {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
+  background-image: url('/background_pattern.png');
+  background-repeat: repeat;
+  background-size: 240px;
+  opacity: 0.055;
 }
 
 .sunbeam-effect {
@@ -286,6 +290,18 @@ body {
   z-index: 1;
 }
 
+.onboarding-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/background_pattern.png');
+  background-repeat: repeat;
+  background-size: 200px;
+  opacity: 0.05;
+  z-index: 1;
+  pointer-events: none;
+}
+
 .onboarding-card {
   position: relative;
   z-index: 2;
@@ -299,11 +315,19 @@ body {
 .onboarding-mascot-wrapper {
   position: relative;
   margin-bottom: 24px;
+  perspective: 800px;
+  transform-style: preserve-3d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .onboarding-mascot {
   width: 180px;
   height: auto;
+  position: relative;
+  z-index: 2;
+  transform: translateZ(5px);
   animation: float 4s ease-in-out infinite;
   filter: drop-shadow(0 15px 25px rgba(30, 81, 40, 0.25));
 }
@@ -318,20 +342,32 @@ body {
   clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
   animation: float 3s ease-in-out infinite alternate;
   filter: drop-shadow(0 0 8px var(--gold));
+  z-index: 3;
 }
 
 .onboarding-dragon-spiral {
   position: absolute;
-  inset: -40px;
-  border: 2px dashed rgba(244, 180, 26, 0.4);
+  top: 55%;
+  left: 50%;
+  width: 270px;
+  height: 270px;
+  margin-top: -135px;
+  margin-left: -135px;
+  border: 3px dashed rgba(244, 180, 26, 0.75);
   border-radius: 50%;
   pointer-events: none;
-  animation: rotate 20s linear infinite;
+  box-shadow: 0 0 25px rgba(244, 180, 26, 0.4), inset 0 0 20px rgba(244, 180, 26, 0.3);
+  animation: rotate3D 12s linear infinite;
+  transform-style: preserve-3d;
 }
 
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes rotate3D {
+  from {
+    transform: rotateX(75deg) rotateY(12deg) rotateZ(0deg);
+  }
+  to {
+    transform: rotateX(75deg) rotateY(12deg) rotateZ(360deg);
+  }
 }
 
 .onboarding-title {
@@ -2017,3 +2053,23 @@ body.dark-theme .tetris-pause-overlay {
   }
 }
 
+/* Interactive Map Order Alert Custom styling */
+.map-order-alert-leaflet-wrapper {
+  background: none !important;
+  border: none !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-origin: bottom center;
+}
+
+.map-order-alert-leaflet-wrapper:hover {
+  transform: scale(1.25) translateY(-5px);
+  z-index: 1010 !important;
+}
+
+.map-order-alert-leaflet-wrapper .order-tooltip {
+  background: rgba(255, 71, 87, 0.95) !important;
+  border: 1px solid #FF4757 !important;
+  color: white !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3) !important;
+}

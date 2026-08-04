@@ -8,7 +8,6 @@ interface SettingsProps {
 export const Settings: React.FC<SettingsProps> = ({ onClearAllData }) => {
   const [sunlightMode, setSunlightMode] = useState(true);
 
-
   // Toggle Dark Mode (Moonlight) vs Light Mode (Sunlight) on the body element
   const handleThemeToggle = () => {
     setSunlightMode(!sunlightMode);
@@ -75,8 +74,6 @@ export const Settings: React.FC<SettingsProps> = ({ onClearAllData }) => {
           />
         </label>
       </div>
-
-
 
       {/* Xbox 360 Controller Settings Guide */}
       <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>

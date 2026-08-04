@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Onboarding } from './pages/Onboarding';
 import { Home } from './pages/Home';
 import { ShopDetail } from './pages/ShopDetail';
@@ -28,6 +28,49 @@ function App() {
   const [customPots, setCustomPots] = useState<CustomPot[]>([]);
   const [userPoints, setUserPoints] = useState<number>(15); // Starter points
 
+  // Load shops from database
+  useEffect(() => {
+    const fetchDBShops = async () => {
+      try {
+        const res = await fetch('/api/shops');
+        if (res.ok) {
+          const data = await res.json();
+          const dbShopsMapped: Shop[] = data.shops.map((s: any) => ({
+            id: s.id,
+            name: s.shopName,
+            category: s.category || 'now',
+            categoryTh: s.categoryTh || 'ร้านเปิดตอนนี้',
+            description: s.shopDescription || 'ไม่มีคำอธิบายร้านค้า',
+            rating: s.rating || 5.0,
+            reviewCount: s.reviewCount || 0,
+            distance: s.distance || '2.0 กม.',
+            lat: s.lat,
+            lng: s.lng,
+            address: s.shopAddress || '',
+            openStatus: s.openStatus || 'เปิดอยู่ • ปิด 21:00',
+            isOpen: s.isOpen,
+            phone: s.phone || '',
+            coverImage: s.coverImage || s.shopThumbnail || 'https://images.unsplash.com/photo-1493325619176-79116e45187e?auto=format&fit=crop&w=300&q=80',
+            videoUrl: s.videoUrl || '/videos/thai_pot_00001.mp4',
+            gallery: s.gallery && s.gallery.length > 0 ? s.gallery : [
+              'https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=500&auto=format&fit=crop&q=60',
+              'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=500&auto=format&fit=crop&q=60'
+            ],
+            reviews: []
+          }));
+          setShops(dbShopsMapped);
+        }
+      } catch (err) {
+        console.error('Failed to load shops from DB:', err);
+      }
+    };
+
+    fetchDBShops();
+    // Poll every 10 seconds to keep shop listing and statuses up to date
+    const interval = setInterval(fetchDBShops, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Auth state
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     const saved = localStorage.getItem('photpot_user');
@@ -40,6 +83,83 @@ function App() {
     }
     return null;
   });
+
+  // Sync user points state with currentUser on mount/change
+  useEffect(() => {
+    if (currentUser) {
+      setUserPoints(currentUser.points !== undefined ? currentUser.points : 15);
+    } else {
+      setUserPoints(15);
+    }
+  }, [currentUser]);
+
+  // Load claimed custom pots from database when user logs in or mounts
+  useEffect(() => {
+    const fetchClaimedPots = async () => {
+      if (!currentUser) {
+        setCustomPots([]);
+        return;
+      }
+      try {
+        const res = await fetch(`/api/orders?customerId=${currentUser.id}&status=claimed`);
+        if (res.ok) {
+          const data = await res.json();
+          const mappedPots: CustomPot[] = data.orders.map((o: any) => ({
+            id: o.id,
+            name: o.potName,
+            shape: o.potDetails?.shape || 'classic',
+            shapeTh: o.potDetails?.shapeTh || 'ทรงดั้งเดิม 🏺',
+            color: o.potDetails?.color || '#CD853F',
+            colorName: o.potDetails?.colorName || 'ดินส้มอิฐ',
+            pattern: o.potDetails?.pattern || 'ancient-wave',
+            patternTh: o.potDetails?.patternTh || 'ไม่มีลาย',
+            cost: o.price
+          }));
+          setCustomPots(mappedPots);
+        }
+      } catch (err) {
+        console.error('Failed to fetch claimed pots:', err);
+      }
+    };
+    fetchClaimedPots();
+  }, [currentUser]);
+
+  // Global pending custom orders (shown as alerts on map)
+  const [pendingOrders, setPendingOrders] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchPendingOrders = async () => {
+      try {
+        const res = await fetch('/api/orders?status=pending');
+        if (res.ok) {
+          const data = await res.json();
+          setPendingOrders(data.orders || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch pending orders:', err);
+      }
+    };
+    fetchPendingOrders();
+    const interval = setInterval(fetchPendingOrders, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const syncUserPoints = async (newPts: number) => {
+    if (currentUser) {
+      try {
+        await fetch(`/api/users/${currentUser.id}/points`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ points: newPts })
+        });
+        const updatedUser = { ...currentUser, points: newPts };
+        setCurrentUser(updatedUser);
+        localStorage.setItem('photpot_user', JSON.stringify(updatedUser));
+      } catch (err) {
+        console.error('Failed to sync points:', err);
+      }
+    }
+  };
 
   const handleLogin = (user: UserProfile) => {
     setCurrentUser(user);
@@ -91,7 +211,11 @@ function App() {
           }
 
           // Reward user points for contributing to community
-          setUserPoints((pts) => pts + 10);
+          setUserPoints((pts) => {
+            const nextPts = pts + 10;
+            syncUserPoints(nextPts);
+            return nextPts;
+          });
 
           return updatedShop;
         }
@@ -103,11 +227,19 @@ function App() {
   // Add custom designed pot to user inventory
   const handleAddCustomPot = (newPot: CustomPot) => {
     setCustomPots((prev) => [newPot, ...prev]);
-    setUserPoints((pts) => pts + 10);
+    setUserPoints((pts) => {
+      const nextPts = pts + 10;
+      syncUserPoints(nextPts);
+      return nextPts;
+    });
   };
 
   const handleAwardPoints = (points: number) => {
-    setUserPoints((pts) => pts + points);
+    setUserPoints((pts) => {
+      const nextPts = pts + points;
+      syncUserPoints(nextPts);
+      return nextPts;
+    });
   };
 
 
@@ -128,6 +260,9 @@ function App() {
 
   return (
     <>
+      {/* Dynamic pattern background overlay */}
+      <div className="fantasy-bg-overlay" />
+
       {/* Background music player */}
       <BackgroundMusic />
 
@@ -164,6 +299,7 @@ function App() {
                 activeShopId={activeShopId}
                 setActiveShopId={setActiveShopId}
                 filters={filters}
+                pendingOrders={pendingOrders}
               />
             )}
             {activeTab === 'search' && (
@@ -179,6 +315,8 @@ function App() {
                 onAddCustomPot={handleAddCustomPot}
                 userPoints={userPoints}
                 onAwardPoints={handleAwardPoints}
+                shops={shops}
+                currentUser={currentUser}
               />
             )}
             {activeTab === 'account' && (
@@ -216,6 +354,7 @@ function App() {
           onToggleFavorite={handleToggleFavorite}
           isFavorite={favorites.includes(selectedShop.id)}
           onAddReview={handleAddReview}
+          currentUser={currentUser}
         />
       )}
 

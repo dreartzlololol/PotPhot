@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Shop, Review } from '../data/shops';
+import type { UserProfile } from '../types/auth';
 import { 
   X, Heart, Share2, MapPin, Clock, Phone, Navigation, 
   Star, Image, MessageCircle, Sparkles, Check 
@@ -11,6 +12,7 @@ interface ShopDetailProps {
   onToggleFavorite: (shopId: string) => void;
   isFavorite: boolean;
   onAddReview: (shopId: string, newReview: Review) => void;
+  currentUser?: UserProfile | null;
 }
 
 // Preset pot images that the user can mock-upload in reviews
@@ -27,8 +29,9 @@ export const ShopDetail: React.FC<ShopDetailProps> = ({
   onToggleFavorite,
   isFavorite,
   onAddReview,
+  currentUser,
 }) => {
-  const [activeTab, setActiveTab] = useState<'info' | 'custom' | 'reviews'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'products' | 'custom' | 'reviews'>('info');
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   
   // Review Form State
@@ -49,8 +52,171 @@ export const ShopDetail: React.FC<ShopDetailProps> = ({
   const [customPotNotes, setCustomPotNotes] = useState<string>('');
   const [customOrderSent, setCustomOrderSent] = useState<boolean>(false);
 
+  // Shop Catalog & Checkout States
+  const [dbProducts, setDbProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [selectedProductForOrder, setSelectedProductForOrder] = useState<any | null>(null);
+  const [checkoutQuantity, setCheckoutQuantity] = useState(1);
+  const [shippingAddress, setShippingAddress] = useState('');
+  const [orderPlacing, setOrderPlacing] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+
+  // Reviews State
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoadingProducts(true);
+      try {
+        const res = await fetch(`/api/shops/${shop.id}/products`);
+        if (res.ok) {
+          const data = await res.json();
+          setDbProducts(data.products || []);
+        }
+      } catch (e) {
+        console.error('Failed to load products:', e);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    const loadReviews = async () => {
+      setLoadingReviews(true);
+      try {
+        const res = await fetch(`/api/shops/${shop.id}/reviews`);
+        if (res.ok) {
+          const data = await res.json();
+          setReviews(data.reviews || []);
+        }
+      } catch (e) {
+        console.error('Failed to load reviews:', e);
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+
+    loadProducts();
+    loadReviews();
+  }, [shop.id]);
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) {
+      alert('กรุณาเข้าสู่ระบบก่อนดำเนินการสั่งซื้อครับ!');
+      return;
+    }
+    if (!shippingAddress.trim()) {
+      alert('กรุณากรอกที่อยู่ในการจัดส่ง');
+      return;
+    }
+
+    setOrderPlacing(true);
+    try {
+      const payload = {
+        customerId: currentUser.id,
+        customerName: currentUser.name,
+        customerPhone: currentUser.phone,
+        shopId: shop.id,
+        shopName: shop.name,
+        potName: selectedProductForOrder.name,
+        price: selectedProductForOrder.price,
+        quantity: checkoutQuantity,
+        status: 'pending',
+        progress: 0,
+        address: shippingAddress,
+        potDetails: null
+      };
+
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        setOrderSuccess(true);
+        setSelectedProductForOrder(null);
+        setCheckoutQuantity(1);
+        setShippingAddress('');
+      } else {
+        alert('เกิดข้อผิดพลาดในการส่งใบสั่งซื้อ');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+    } finally {
+      setOrderPlacing(false);
+    }
+  };
+
+  const handlePlaceCustomCommission = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) {
+      alert('กรุณาเข้าสู่ระบบก่อนดำเนินการสั่งทำครับ!');
+      return;
+    }
+    if (!refFileName) {
+      alert('กรุณาอัปโหลดรูปภาพหรือแบบร่างกระถางที่ต้องการสั่งทำ');
+      return;
+    }
+
+    setOrderPlacing(true);
+    try {
+      const baseCost = potSize === 'S' ? 250 : potSize === 'M' ? 400 : 650;
+      const setupCost = customPotType === '3d' ? 0 : 180;
+      const totalEstimatedCost = (baseCost * potQuantity) + setupCost;
+
+      const potDetails = {
+        customType: customPotType,
+        fileName: refFileName,
+        fileSize: refFileSize,
+        filePreview: refFilePreview,
+        size: potSize,
+        notes: customPotNotes
+      };
+
+      const payload = {
+        customerId: currentUser.id,
+        customerName: currentUser.name,
+        customerPhone: currentUser.phone,
+        shopId: shop.id,
+        shopName: shop.name,
+        potName: `กระถางสั่งทำพิเศษ (${potSize === 'S' ? 'เล็ก' : potSize === 'M' ? 'กลาง' : 'ใหญ่'})`,
+        price: totalEstimatedCost / potQuantity,
+        quantity: potQuantity,
+        status: 'pending',
+        progress: 0,
+        address: 'จัดส่งตามที่อยู่บัตรประชาชน: ' + currentUser.nationalId, // Default address note
+        potDetails: potDetails
+      };
+
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        setCustomOrderSent(true);
+        // Reset custom fields
+        setRefFileName('');
+        setRefFileSize('');
+        setRefFilePreview('');
+        setCustomPotNotes('');
+      } else {
+        alert('เกิดข้อผิดพลาดในการส่งใบสั่งทำ');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+    } finally {
+      setOrderPlacing(false);
+    }
+  };
+
   // Handle Review Submission
-  const handleSubmitReview = (e: React.FormEvent) => {
+  const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameInput.trim() || !contentInput.trim()) return;
 
@@ -58,35 +224,48 @@ export const ShopDetail: React.FC<ShopDetailProps> = ({
       ? MOCK_POT_PRESETS.find(p => p.id === selectedPresetPot)?.url 
       : undefined;
 
-    const newReview: Review = {
-      id: `rev-${Date.now()}`,
-      reviewerName: nameInput,
-      rating: ratingInput,
-      date: 'เมื่อครู่',
-      content: contentInput,
-      potImage: attachedPot,
-    };
+    try {
+      const response = await fetch(`/api/shops/${shop.id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reviewerName: nameInput,
+          rating: ratingInput,
+          content: contentInput,
+          potImage: attachedPot
+        })
+      });
 
-    onAddReview(shop.id, newReview);
+      if (response.ok) {
+        const data = await response.json();
+        setReviews((prev) => [data.review, ...prev]);
+        onAddReview(shop.id, data.review);
 
-    // Mascot reaction trigger
-    const ratingComment = ratingInput === 5 
-      ? 'ยอดเยี่ยมไปเลย! น้องมังกรถูกใจรีวิว 5 ดาวของคุณมากครับ 🐉💖' 
-      : 'ขอบคุณสำหรับรีวิวนะครับ น้องมังกรจะนำคำแนะนำไปบอกหน้าร้านให้พัฒนาต่อครับ! 🧱✨';
-      
-    setSuccessMessage(ratingComment);
-    setShowSuccessBubble(true);
+        // Mascot reaction trigger
+        const ratingComment = ratingInput === 5 
+          ? 'ยอดเยี่ยมไปเลย! น้องมังกรถูกใจรีวิว 5 ดาวของคุณมากครับ 🐉💖' 
+          : 'ขอบคุณสำหรับรีวิวนะครับ น้องมังกรจะนำคำแนะนำไปบอกหน้าร้านให้พัฒนาต่อครับ! 🧱✨';
+          
+        setSuccessMessage(ratingComment);
+        setShowSuccessBubble(true);
 
-    // Reset Form
-    setNameInput('');
-    setContentInput('');
-    setSelectedPresetPot(null);
-    setRatingInput(5);
+        // Reset Form
+        setNameInput('');
+        setContentInput('');
+        setSelectedPresetPot(null);
+        setRatingInput(5);
 
-    // Hide mascot message after 5 seconds
-    setTimeout(() => {
-      setShowSuccessBubble(false);
-    }, 6000);
+        // Hide mascot message after 5 seconds
+        setTimeout(() => {
+          setShowSuccessBubble(false);
+        }, 6000);
+      } else {
+        alert('เกิดข้อผิดพลาดในการบันทึกรีวิว');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้');
+    }
   };
 
   const handleShare = () => {
@@ -196,6 +375,28 @@ export const ShopDetail: React.FC<ShopDetailProps> = ({
           <button
             className="gamepad-focusable"
             onClick={() => {
+              setActiveTab('products');
+              setCustomOrderSent(false);
+              setOrderSuccess(false);
+            }}
+            style={{
+              flex: 1.3,
+              padding: '14px',
+              border: 'none',
+              background: 'none',
+              fontWeight: 700,
+              fontSize: '14px',
+              color: activeTab === 'products' ? 'var(--primary)' : 'var(--text-muted)',
+              borderBottom: activeTab === 'products' ? '3px solid var(--primary-light)' : '3px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.3s'
+            }}
+          >
+            เลือกซื้อกระถาง 🛍️
+          </button>
+          <button
+            className="gamepad-focusable"
+            onClick={() => {
               setActiveTab('custom');
               setCustomOrderSent(false);
             }}
@@ -237,7 +438,7 @@ export const ShopDetail: React.FC<ShopDetailProps> = ({
               transition: 'all 0.3s'
             }}
           >
-            รีวิว ({shop.reviews.length})
+            รีวิว ({reviews.length})
           </button>
         </div>
 
@@ -340,6 +541,118 @@ export const ShopDetail: React.FC<ShopDetailProps> = ({
                 </div>
               </div>
             </>
+          ) : activeTab === 'products' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {orderSuccess && (
+                <div className="glass-panel" style={{ padding: '20px', textAlign: 'center', borderLeft: '5px solid #2E7D32', background: 'rgba(46,125,50,0.05)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#2E7D32', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Check size={20} />
+                  </div>
+                  <h4 style={{ margin: 0, color: '#2E7D32', fontWeight: 700 }}>ส่งใบสั่งซื้อสำเร็จ!</h4>
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-dark)' }}>คำสั่งซื้อของคุณถูกส่งไปยังหน้าร้านเรียบร้อยแล้ว ติดตามความคืบหน้าได้ในบัญชีของคุณครับ 🐉✨</p>
+                  <button onClick={() => setOrderSuccess(false)} style={{ marginTop: '8px', padding: '6px 12px', background: 'white', border: '1px solid #2E7D32', color: '#2E7D32', borderRadius: '8px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                    ซื้อกระถางชิ้นอื่นต่อ
+                  </button>
+                </div>
+              )}
+
+              {loadingProducts ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>กำลังโหลดรายการกระถางของทางร้าน...</div>
+              ) : dbProducts.length === 0 ? (
+                <div className="glass-panel" style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  📦 ขออภัย ร้านนี้ยังไม่ได้ลงรายการสินค้าไว้ในระบบครับ
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {dbProducts.map(p => (
+                    <div key={p.id} className="glass-panel" style={{ padding: '16px', display: 'flex', gap: '16px', alignItems: 'center', opacity: p.stock === 0 ? 0.7 : 1 }}>
+                      <div style={{ width: '80px', height: '80px', borderRadius: '12px', background: 'rgba(0,0,0,0.05)', overflow: 'hidden', flexShrink: 0 }}>
+                        {p.imageUrl ? (
+                          <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>🏺</div>
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--text-dark)' }}>{p.name}</h4>
+                        <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-muted)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{p.description}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+                          <span style={{ fontSize: '15px', fontWeight: 700, color: 'var(--primary)' }}>฿{p.price}</span>
+                          <span style={{ fontSize: '11px', color: p.stock === 0 ? '#E63946' : 'var(--text-muted)' }}>สต็อก: {p.stock} ชิ้น</span>
+                        </div>
+                      </div>
+                      <button 
+                        disabled={p.stock === 0}
+                        onClick={() => {
+                          if (!currentUser) {
+                            alert('กรุณาเข้าสู่ระบบเป็น "ลูกค้าทั่วไป" ก่อนสั่งซื้อครับ');
+                            return;
+                          }
+                          setSelectedProductForOrder(p);
+                          setCheckoutQuantity(1);
+                        }}
+                        style={{
+                          padding: '8px 16px', borderRadius: '10px', border: 'none',
+                          background: p.stock === 0 ? 'var(--text-muted)' : 'var(--primary)',
+                          color: 'white', fontWeight: 700, fontSize: '12px', cursor: p.stock === 0 ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        {p.stock === 0 ? 'หมด' : 'สั่งซื้อ'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Checkout Popup Form */}
+              {selectedProductForOrder && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                  <div className="glass-panel" style={{ width: '100%', maxWidth: '380px', background: 'white', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>ยืนยันใบสั่งซื้อกระถาง</h3>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'rgba(0,0,0,0.02)', padding: '12px', borderRadius: '12px' }}>
+                      <img src={selectedProductForOrder.imageUrl} alt={selectedProductForOrder.name} style={{ width: '50px', height: '50px', borderRadius: '8px', objectFit: 'cover' }} />
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '14px' }}>{selectedProductForOrder.name}</div>
+                        <div style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '13px' }}>฿{selectedProductForOrder.price}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>จำนวนสินค้า (ใบ):</label>
+                      <input 
+                        type="number" min="1" max={selectedProductForOrder.stock}
+                        value={checkoutQuantity} 
+                        onChange={e => setCheckoutQuantity(Math.min(selectedProductForOrder.stock, Math.max(1, parseInt(e.target.value) || 1)))} 
+                        style={{ padding: '10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>ที่อยู่จัดส่ง:</label>
+                      <textarea 
+                        required
+                        placeholder="กรุณากรอกที่อยู่ในการจัดส่งโดยละเอียด..."
+                        value={shippingAddress} 
+                        onChange={e => setShippingAddress(e.target.value)} 
+                        style={{ padding: '10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.1)', height: '70px', resize: 'vertical' }}
+                      />
+                    </div>
+
+                    <div style={{ background: 'linear-gradient(135deg, #FFFDF6, #FFF8EC)', border: '1.5px dashed rgba(200,140,50,0.4)', borderRadius: '12px', padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#8E5431' }}>ยอดชำระปลายทาง:</span>
+                      <span style={{ fontSize: '18px', fontWeight: 900, color: '#8E5431' }}>฿{(selectedProductForOrder.price * checkoutQuantity).toLocaleString()}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                      <button type="button" onClick={() => setSelectedProductForOrder(null)} style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: 'rgba(0,0,0,0.05)', color: 'var(--text-dark)', fontWeight: 600, cursor: 'pointer' }}>ยกเลิก</button>
+                      <button type="button" onClick={handlePlaceOrder} disabled={orderPlacing} style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: 'var(--primary)', color: 'white', fontWeight: 700, cursor: 'pointer', textAlign: 'center' }}>
+                        {orderPlacing ? 'กำลังสั่ง...' : 'ยืนยันสั่งซื้อ 🛒'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : activeTab === 'custom' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div className="glass-panel" style={{ padding: '16px', borderLeft: '5px solid var(--primary-light)' }}>
@@ -386,10 +699,7 @@ export const ShopDetail: React.FC<ShopDetailProps> = ({
                 </div>
               ) : (
                 <form 
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setCustomOrderSent(true);
-                  }}
+                  onSubmit={handlePlaceCustomCommission}
                   style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
                 >
                   {/* Selector (Image vs 3D files) */}
@@ -600,12 +910,16 @@ export const ShopDetail: React.FC<ShopDetailProps> = ({
                   <span>รีวิวและรูปกระถางจากคอมมูนิตี้</span>
                 </h3>
                 
-                {shop.reviews.length === 0 ? (
+                {loadingReviews ? (
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', margin: '20px 0' }}>
+                    กำลังโหลดรีวิว... ⏳
+                  </p>
+                ) : reviews.length === 0 ? (
                   <p style={{ color: 'var(--text-muted)', textAlign: 'center', margin: '20px 0' }}>
                     ยังไม่มีรีวิวสำหรับร้านนี้ มาร่วมเป็นคนแรกที่รีวิวกันเถอะ! 🌱
                   </p>
                 ) : (
-                  shop.reviews.map((review) => (
+                  reviews.map((review) => (
                     <div key={review.id} className="review-item glass-panel">
                       <div className="review-item-header">
                         <span className="reviewer-name">{review.reviewerName}</span>

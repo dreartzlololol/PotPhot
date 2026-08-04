@@ -15,6 +15,7 @@ interface HomeProps {
   activeShopId: string | null;
   setActiveShopId: (id: string | null) => void;
   filters: FilterState;
+  pendingOrders?: any[];
 }
 
 const CATEGORIES = [
@@ -34,6 +35,7 @@ export const Home: React.FC<HomeProps> = ({
   activeShopId,
   setActiveShopId,
   filters,
+  pendingOrders = [],
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -218,6 +220,7 @@ export const Home: React.FC<HomeProps> = ({
             onSelectShop={(shop) => {
               setActiveShopId(shop.id);
             }}
+            pendingOrders={pendingOrders}
           />
 
           {/* Floating preview card on map view */}

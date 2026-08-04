@@ -1,4 +1,4 @@
-export type UserRole = 'customer' | 'shop' | 'rider';
+export type UserRole = 'customer' | 'shop' | 'rider' | 'all';
 
 export interface UserBase {
   id: string;
@@ -7,6 +7,17 @@ export interface UserBase {
   phone: string;
   email: string;
   nationalId: string;
+  points?: number;
+  shopEmail?: string;
+  shopName?: string;
+  shopDescription?: string;
+  shopThumbnail?: string;
+  shopAddress?: string;
+  shopLocation?: { lat: number; lng: number } | null;
+  isOpen?: boolean;
+  salesHistory?: SaleRecord[];
+  vehicleType?: string;
+  driversLicense?: string;
 }
 
 export interface CustomerProfile extends UserBase {
