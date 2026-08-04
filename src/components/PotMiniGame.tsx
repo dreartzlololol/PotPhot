@@ -414,10 +414,18 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
     }
   };
 
-  // Add a new decal to the active list
+  const lastDecalAddedTimeRef = React.useRef<number>(0);
+
+  // Add a new decal to the active list (with 350ms anti-double-trigger guard)
   const addDecalInstance = (decalId: string, emoji?: string, url?: string) => {
+    const now = Date.now();
+    if (now - lastDecalAddedTimeRef.current < 350) {
+      return; // Reject duplicate trigger within 350ms window
+    }
+    lastDecalAddedTimeRef.current = now;
+
     const newDec: EquippedDecal = {
-      id: `dec-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      id: `dec-${now}-${Math.random().toString(36).substr(2, 5)}`,
       decalId,
       emoji,
       url,

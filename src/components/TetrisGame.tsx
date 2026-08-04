@@ -230,9 +230,22 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
     return rotated;
   };
 
+  const lastActionTimesRef = useRef<{ [key: string]: number }>({});
+
+  const isActionCooldowned = useCallback((actionKey: string, cooldownMs = 120): boolean => {
+    const now = Date.now();
+    const last = lastActionTimesRef.current[actionKey] || 0;
+    if (now - last < cooldownMs) {
+      return true; // Cooldowned: reject duplicate action trigger
+    }
+    lastActionTimesRef.current[actionKey] = now;
+    return false;
+  }, []);
+
   // Action: Rotate Piece
   const rotatePiece = useCallback(() => {
     if (!gameStartedRef.current || isGameOverRef.current || isPausedRef.current) return;
+    if (isActionCooldowned('rotate', 180)) return;
     
     const piece = currentPieceRef.current;
     const rotatedShape = rotatePieceMatrix(piece.shape);
@@ -253,11 +266,12 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
         x: targetX
       }));
     }
-  }, [checkCollision]);
+  }, [checkCollision, isActionCooldowned]);
 
   // Action: Move Piece Left/Right
   const movePiece = useCallback((dir: number) => {
     if (!gameStartedRef.current || isGameOverRef.current || isPausedRef.current) return;
+    if (isActionCooldowned(`move-${dir}`, 90)) return;
     
     const piece = currentPieceRef.current;
     if (!checkCollision(piece.shape, piece.x + dir, piece.y, boardRef.current)) {
@@ -266,7 +280,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
         x: prev.x + dir
       }));
     }
-  }, [checkCollision]);
+  }, [checkCollision, isActionCooldowned]);
 
   // Lock piece to the board grid
   const lockPiece = useCallback((piece: typeof currentPiece, currentBoard: string[][]) => {
@@ -394,6 +408,7 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
   // Action: Hard Drop (Instantly drop to bottom)
   const hardDropPiece = useCallback(() => {
     if (!gameStartedRef.current || isGameOverRef.current || isPausedRef.current) return;
+    if (isActionCooldowned('hardDrop', 350)) return;
 
     const piece = currentPieceRef.current;
     let targetY = piece.y;
@@ -403,17 +418,18 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
     
     const droppedPiece = { ...piece, y: targetY };
     lockPiece(droppedPiece, boardRef.current);
-  }, [checkCollision, lockPiece]);
+  }, [checkCollision, lockPiece, isActionCooldowned]);
 
   // Action: Pause Toggle
   const togglePause = useCallback(() => {
     if (!gameStartedRef.current || isGameOverRef.current) return;
+    if (isActionCooldowned('pause', 300)) return;
     setIsPaused(prev => {
       const nextVal = !prev;
       setMascotBubble(nextVal ? 'เกมหยุดชั่วคราว ดื่มน้ำชาโพธารามรอสักครู่นะครับ 🍵🐉' : 'ลุยแต่งกระถางดินเผากันต่อเลยคร้าบ! 🏺🔥');
       return nextVal;
     });
-  }, []);
+  }, [isActionCooldowned]);
 
   // Keyboard controls listener
   useEffect(() => {
@@ -424,14 +440,14 @@ export const TetrisGame: React.FC<TetrisGameProps> = ({ userPoints, onAwardPoint
       } else if (key === 'd' || e.key === 'ArrowRight') {
         movePiece(1);
       } else if (key === 'w' || e.key === 'ArrowUp') {
-        rotatePiece();
+        if (!e.repeat) rotatePiece();
       } else if (key === 's' || e.key === 'ArrowDown') {
         dropPiece();
       } else if (e.key === ' ') {
         e.preventDefault();
-        hardDropPiece();
+        if (!e.repeat) hardDropPiece();
       } else if (key === 'p' || e.key === 'Escape') {
-        togglePause();
+        if (!e.repeat) togglePause();
       }
     };
 
