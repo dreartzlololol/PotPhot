@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import type { EquippedDecal } from './PotMiniGame';
+import type { EquippedDecal, DrawingStroke } from './PotMiniGame';
 
 interface ThreeModelViewerProps {
   fileData: string | null;
@@ -19,6 +20,7 @@ interface ThreeModelViewerProps {
   useCustomClayColor: boolean;
   clayColor1: string;
   clayColor2: string;
+  clayGrainLevel?: number;
   glazeId: string;
   useCustomGlazeColor: boolean;
   customGlazeColor: string;
@@ -28,12 +30,22 @@ interface ThreeModelViewerProps {
   finishType: 'matte' | 'glossy' | 'crackled';
   spinSpeed: number;
   equippedDecals: EquippedDecal[];
+  decorations?: Set<string>;
   selectedDecalId: string | null;
   onSelectDecal: (id: string | null) => void;
+  onUpdateDecal?: (id: string, updates: Partial<EquippedDecal>) => void;
   engravedText: string;
   engravingColor: string;
   referenceObject?: 'none' | 'iphone' | 'can' | 'coin';
+  refObjectX?: number;
+  refObjectZ?: number;
+  refObjectRotation?: number;
   showAxes?: boolean;
+  isDrawingMode?: boolean;
+  drawingPaths?: DrawingStroke[];
+  onDrawStroke?: (x: number, y: number, isNewStroke: boolean) => void;
+  brushColor?: string;
+  brushSize?: number;
 }
 
 function dataURLToArrayBuffer(dataURL: string): ArrayBuffer {
@@ -70,22 +82,43 @@ function getGlazeColorHex(glazeId: string): string {
   }
 }
 
-function getDecalSVGDataURL(decalId: string): string {
+export function getDecalSVGDataURL(decalId: string): string {
+  if (decalId === 'body-dragon') return '/chinese_dragon_pattern.png';
+  if (decalId === 'body-koi-pair') return '/koi_pattern.png';
+  
   let svgString = '';
   switch (decalId) {
+    case 'body-pot-dragon':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <path d="M 10 70 Q 25 55 40 70 T 70 70" fill="none" stroke="#FFA000" stroke-width="2" />
+        <path d="M 18 78 C 10 50, 32 28, 56 28 C 76 28, 86 46, 80 68 C 74 84, 46 84, 32 75 Z" fill="#E65100" />
+        <path d="M 24 72 C 18 52, 34 35, 56 35 C 72 35, 79 48, 74 65 C 70 76, 48 76, 35 70 Z" fill="#FF8F00" />
+        <path d="M 30 65 C 26 55, 38 43, 56 43 C 67 43, 72 52, 68 63 C 64 70, 48 70, 38 65 Z" fill="#FFD54F" />
+        <path d="M 35 35 Q 42 45 50 35 T 65 35" fill="none" stroke="#B71C1C" stroke-width="2" stroke-linecap="round" />
+        <circle cx="76" cy="32" r="8" fill="#FF3D00" />
+        <circle cx="76" cy="32" r="5" fill="#FF9100" />
+        <circle cx="76" cy="32" r="2.5" fill="#FFF9C4" />
+        <path d="M 68 32 Q 58 22 48 28 Q 60 36 68 32 Z" fill="#FF9100" />
+        <path d="M 75 40 Q 86 52 94 45" fill="none" stroke="#FFE082" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="68" cy="38" r="2.5" fill="#B71C1C" />
+      </svg>`;
+      break;
     case 'body-dragon':
       svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
-        <defs>
-          <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FFE082"/>
-            <stop offset="50%" stop-color="#FFB300"/>
-            <stop offset="100%" stop-color="#FF6F00"/>
-          </linearGradient>
-        </defs>
-        <path d="M 25 65 C 20 50, 30 35, 45 35 C 55 35, 60 45, 65 42 C 72 38, 70 25, 82 28 C 88 30, 85 45, 75 48 C 65 52, 55 68, 42 68 C 30 68, 28 58, 25 65 Z" fill="url(#gold-grad)"/>
+        <path d="M 25 65 C 20 50, 30 35, 45 35 C 55 35, 60 45, 65 42 C 72 38, 70 25, 82 28 C 88 30, 85 45, 75 48 C 65 52, 55 68, 42 68 C 30 68, 28 58, 25 65 Z" fill="#FFB300"/>
         <path d="M 45,35 Q 38,40 38,48 T 50,55 T 62,48" fill="none" stroke="#FFF59D" stroke-width="3" stroke-linecap="round"/>
         <path d="M 68,35 Q 60,30 55,20 Q 52,32 68,35 Z" fill="#FF8F00"/>
         <circle cx="74" cy="35" r="3" fill="#E63946"/>
+      </svg>`;
+      break;
+    case 'body-benjarong':
+      return '/benjarong_cropped.png';
+    case 'body-kranok-flame':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <path d="M 20 80 Q 30 40, 50 30 Q 35 45, 30 70 Z" fill="#FFB300" />
+        <path d="M 30 70 Q 45 25, 75 15 Q 55 35, 45 65 Z" fill="#FF8F00" />
+        <path d="M 45 65 Q 65 30, 85 20 Q 70 45, 60 75 Z" fill="#E65100" />
+        <path d="M 20 80 C 40 85, 70 85, 80 75 Z" fill="#D84315" />
       </svg>`;
       break;
     case 'body-lotus':
@@ -114,16 +147,34 @@ function getDecalSVGDataURL(decalId: string): string {
         <path d="M 58 45 Q 75 35, 88 45 Q 70 50, 58 45 Z" fill="#4CAF50"/>
       </svg>`;
       break;
+
+    case 'body-crane-clouds':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <path d="M 20 60 Q 40 30, 65 35 Q 50 50, 20 60 Z" fill="#FFF" />
+        <path d="M 65 35 Q 75 20, 80 22 C 78 28, 70 32, 65 35 Z" fill="#E63946" />
+        <path d="M 35 52 L 40 85 L 36 85 Z" fill="#212121" />
+        <path d="M 42 50 L 50 82 L 46 82 Z" fill="#212121" />
+        <path d="M 10 75 C 15 65, 35 65, 45 75 C 55 65, 75 65, 85 75" fill="none" stroke="#FFD54F" stroke-width="3" stroke-linecap="round" />
+      </svg>`;
+      break;
+    case 'body-cherry-blossom':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
+        <path d="M 15 80 Q 45 60, 85 30" fill="none" stroke="#5D4037" stroke-width="4" stroke-linecap="round" />
+        <path d="M 45 60 Q 60 45, 65 30" fill="none" stroke="#5D4037" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="35" cy="65" r="8" fill="#F48FB1" />
+        <circle cx="35" cy="65" r="4" fill="#D81B60" />
+        <circle cx="65" cy="30" r="10" fill="#F48FB1" />
+        <circle cx="65" cy="30" r="5" fill="#D81B60" />
+        <circle cx="80" cy="32" r="7" fill="#F8BBD0" />
+      </svg>`;
+      break;
     case 'body-star':
       svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
         <polygon points="50,10 63,35 90,38 70,57 75,85 50,72 25,85 30,57 10,38 37,35" fill="#FFD54F" stroke="#FF8F00" stroke-width="3"/>
       </svg>`;
       break;
     case 'rim-gold':
-      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
-        <rect x="0" y="5" width="100" height="10" fill="#FFD700" stroke="#FFA000" stroke-width="2"/>
-      </svg>`;
-      break;
+      return '/gold_pattern_no_bg.png';
     case 'rim-dots':
       svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
         <circle cx="15" cy="10" r="5" fill="#FFF"/><circle cx="35" cy="10" r="5" fill="#FFF"/><circle cx="55" cy="10" r="5" fill="#FFF"/><circle cx="75" cy="10" r="5" fill="#FFF"/><circle cx="95" cy="10" r="5" fill="#FFF"/>
@@ -132,6 +183,18 @@ function getDecalSVGDataURL(decalId: string): string {
     case 'rim-wave':
       svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
         <path d="M 0 10 Q 12 2, 25 10 T 50 10 T 75 10 T 100 10" fill="none" stroke="#CD853F" stroke-width="4"/>
+      </svg>`;
+      break;
+    case 'rim-meander':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
+        <path d="M 0 5 L 20 5 L 20 15 L 40 15 L 40 5 L 60 5 L 60 15 L 80 15 L 80 5 L 100 5" fill="none" stroke="#FFB300" stroke-width="3" />
+      </svg>`;
+      break;
+    case 'rim-bead-gold':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
+        <circle cx="20" cy="10" r="6" fill="#FFD54F" stroke="#E65100" stroke-width="2" />
+        <circle cx="50" cy="10" r="6" fill="#FFD54F" stroke="#E65100" stroke-width="2" />
+        <circle cx="80" cy="10" r="6" fill="#FFD54F" stroke="#E65100" stroke-width="2" />
       </svg>`;
       break;
     case 'base-cloud':
@@ -150,6 +213,11 @@ function getDecalSVGDataURL(decalId: string): string {
         <path d="M 0 18 Q 10 2, 20 18 T 40 18 T 60 18 T 80 18 T 100 18" fill="none" stroke="#FF5722" stroke-width="4"/>
       </svg>`;
       break;
+    case 'base-water-wave':
+      svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="40" viewBox="0 0 100 20">
+        <path d="M 0 15 C 15 5, 25 18, 40 15 C 55 12, 65 18, 80 15 L 100 15" fill="none" stroke="#0288D1" stroke-width="4" />
+      </svg>`;
+      break;
     default:
       svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="35" fill="#FFB300" stroke="#FF6F00" stroke-width="4"/>
@@ -158,6 +226,8 @@ function getDecalSVGDataURL(decalId: string): string {
   }
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
 }
+
+
 
 function createTextTexture(text: string, color: string): THREE.Texture {
   const canvas = document.createElement('canvas');
@@ -187,6 +257,7 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
   useCustomClayColor,
   clayColor1,
   clayColor2,
+  clayGrainLevel = 30,
   glazeId,
   useCustomGlazeColor,
   customGlazeColor,
@@ -196,12 +267,22 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
   finishType,
   spinSpeed,
   equippedDecals,
+  decorations,
   selectedDecalId,
   onSelectDecal,
+  onUpdateDecal,
   engravedText,
   engravingColor,
   referenceObject = 'none',
-  showAxes = true
+  refObjectX = 0,
+  refObjectZ = 0,
+  refObjectRotation = 0,
+  showAxes = true,
+  isDrawingMode = false,
+  drawingPaths = [],
+  onDrawStroke,
+  brushColor = '#D84315',
+  brushSize = 4
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -212,10 +293,20 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
   const controlsRef = useRef<OrbitControls | null>(null);
   const turntableGroupRef = useRef<THREE.Group | null>(null);
   const decalGroupRef = useRef<THREE.Group | null>(null);
-  const materialRef = useRef<THREE.MeshToonMaterial | null>(null);
+  const materialRef = useRef<THREE.MeshStandardMaterial | null>(null);
   const modelObjectRef = useRef<THREE.Object3D | null>(null);
   const refObjectMeshRef = useRef<THREE.Object3D | null>(null);
   const axesGroupRef = useRef<THREE.Group | null>(null);
+
+  const textureCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  if (!textureCanvasRef.current) {
+    textureCanvasRef.current = document.createElement('canvas');
+    textureCanvasRef.current.width = 1024;
+    textureCanvasRef.current.height = 1024;
+  }
+  const lastDrawPointRef = useRef<{x: number, y: number} | null>(null);
+  const drawingPathsRef = useRef(drawingPaths);
+  drawingPathsRef.current = drawingPaths;
 
   // Rotation offset states for custom STL/OBJ files
   const [rotX, setRotX] = useState(-90);
@@ -273,6 +364,7 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
     const mainLight = new THREE.DirectionalLight(0xffffff, 1.4);
     mainLight.position.set(30, 80, 50);
     mainLight.castShadow = true;
+    mainLight.shadow.bias = -0.001; // fix self-shadow acne on curved surfaces
     scene.add(mainLight);
 
     const fillLight = new THREE.DirectionalLight(0xffeedd, 0.55);
@@ -306,18 +398,11 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
     capMesh.position.y = 0.2;
     turntableGroup.add(capMesh);
 
-    // Create toon gradient map for cell shading
-    const colors = new Uint8Array([0, 100, 180, 255]);
-    const toonGradient = new THREE.DataTexture(colors, colors.length, 1, THREE.RedFormat);
-    toonGradient.minFilter = THREE.NearestFilter;
-    toonGradient.magFilter = THREE.NearestFilter;
-    toonGradient.generateMipmaps = false;
-    toonGradient.needsUpdate = true;
-
-    // Initialize toon pottery material
-    const material = new THREE.MeshToonMaterial({
-      color: 0xcd853f,
-      gradientMap: toonGradient,
+    // Initialize realistic pottery material
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.5,
+      metalness: 0.1,
       side: THREE.DoubleSide,
     });
     materialRef.current = material;
@@ -547,6 +632,28 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
         points.push(new THREE.Vector2(0, bottomThickness));
 
         const latheGeometry = new THREE.LatheGeometry(points, segments);
+
+        // Custom UV mapping for outer pot profile so V goes 0.0 -> 1.0 (bottom base -> top rim)
+        const uvAttr = latheGeometry.attributes.uv;
+        const numPoints = points.length; // 42 points
+        for (let i = 0; i <= segments; i++) {
+          for (let j = 0; j < numPoints; j++) {
+            const vertexIndex = i * numPoints + j;
+            if (j >= 1 && j <= 21) {
+              // Outer surface profile points (j=1 is outer bottom base, j=21 is outer top rim)
+              const outerV = (j - 1) / 20.0;
+              uvAttr.setY(vertexIndex, outerV);
+            } else if (j > 21) {
+              // Inner wall profile points: map to top margin
+              uvAttr.setY(vertexIndex, 1.05);
+            } else {
+              // j = 0 (outer bottom center)
+              uvAttr.setY(vertexIndex, 0.0);
+            }
+          }
+        }
+        uvAttr.needsUpdate = true;
+
         const smoothGeometry = mergeVertices(latheGeometry);
         smoothGeometry.center();
         smoothGeometry.computeVertexNormals();
@@ -585,7 +692,9 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
 
     const scaleVal = potScale ?? 1.0;
     const wFactor = (potWidth / 160) * 11 * scaleVal;
-    const refX = -(wFactor + 7);
+    const defaultRefX = -(wFactor + 7);
+    const finalX = defaultRefX + refObjectX;
+    const finalZ = refObjectZ;
 
     const refGroup = new THREE.Group();
 
@@ -636,7 +745,9 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
       refGroup.add(coinMesh);
     }
 
-    refGroup.position.set(refX, 0, 0);
+    refGroup.position.set(finalX, 0, finalZ);
+    refGroup.rotation.y = THREE.MathUtils.degToRad(refObjectRotation);
+
     turntableGroup.add(refGroup);
     refObjectMeshRef.current = refGroup;
 
@@ -646,7 +757,7 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
         refObjectMeshRef.current = null;
       }
     };
-  }, [referenceObject, potWidth, potScale]);
+  }, [referenceObject, potWidth, potScale, refObjectX, refObjectZ, refObjectRotation]);
 
   // Render XYZ Axis Lines (Red = X, Green = Y, Blue = Z) + 3D Grid Helper
   useEffect(() => {
@@ -716,54 +827,242 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
     };
   }, [showAxes]);
 
-  // 3. Update Material attributes (color, roughness, metalness, clearcoat)
   useEffect(() => {
     const material = materialRef.current;
     if (!material) return;
 
-    const clayColor = useCustomClayColor ? clayColor2 : getClayColorHex(clayId);
-    const finalMaterialColor = new THREE.Color(clayColor);
+    let isCancelled = false;
+    const canvas = textureCanvasRef.current!;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
 
-    if (useCustomGlazeColor) {
-      const gCol = new THREE.Color(customGlazeColor);
-      finalMaterialColor.lerp(gCol, glazeOpacity / 100);
-    } else if (glazeId !== 'none') {
-      const gCol = new THREE.Color(getGlazeColorHex(glazeId));
-      finalMaterialColor.lerp(gCol, 0.6);
+    const loadImg = (src: string): Promise<HTMLImageElement> => new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(img);
+      img.src = src;
+    });
+
+    const promises: Promise<any>[] = [];
+    const decImages: Record<string, HTMLImageElement> = {};
+    const eqImages: Record<string, HTMLImageElement> = {};
+
+    if (decorations && decorations.size > 0) {
+      decorations.forEach(decId => {
+        promises.push(loadImg(getDecalSVGDataURL(decId)).then(img => { decImages[decId] = img; }));
+      });
     }
 
-    const roughnessVal = finishType === 'matte' 
-      ? 0.9 
-      : finishType === 'crackled' ? 0.35 : 0.15;
-      
-    const metalnessVal = useCustomGlazeColor 
-      ? glazeMetallicLevel / 100 
-      : (glazeId === 'gold' ? 0.85 : 0.08);
+    if (equippedDecals && equippedDecals.length > 0) {
+      equippedDecals.forEach(dec => {
+        const src = dec.decalId === 'body-dragon' ? '/chinese_dragon_pattern.png' : dec.decalId === 'body-koi-pair' ? '/koi_pattern.png' : (dec.url || getDecalSVGDataURL(dec.decalId));
+        promises.push(loadImg(src).then(img => { eqImages[dec.id] = img; }));
+      });
+    }
 
-    const clearcoatVal = finishType === 'glossy' 
-      ? (useCustomGlazeColor ? glazeGlossyLevel / 100 : 0.92) 
-      : 0.0;
+    Promise.all(promises).then(() => {
+      if (isCancelled) return;
 
-    material.color.copy(finalMaterialColor);
-    // MeshToonMaterial doesn't support PBR attributes, so we set them dynamically to avoid TS/Runtime errors
-    if ('roughness' in material) {
-      (material as any).roughness = roughnessVal;
+      // 1. Base Clay
+      if (useCustomClayColor) {
+        const grad = ctx.createLinearGradient(0, 0, 0, 1024);
+        grad.addColorStop(0, clayColor1);
+        grad.addColorStop(1, clayColor2);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 1024, 1024);
+      } else {
+        ctx.fillStyle = getClayColorHex(clayId);
+        ctx.fillRect(0, 0, 1024, 1024);
+      }
+
+      // 2. Grain
+      if (clayGrainLevel > 0) {
+        const grainAmount = (clayGrainLevel / 100) * 0.16;
+        const imgData = ctx.getImageData(0, 0, 1024, 1024);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          if (Math.random() < 0.35) {
+            const noise = (Math.random() - 0.5) * 255 * grainAmount;
+            data[i] = Math.min(255, Math.max(0, data[i] + noise));
+            data[i+1] = Math.min(255, Math.max(0, data[i+1] + noise));
+            data[i+2] = Math.min(255, Math.max(0, data[i+2] + noise));
+          }
+        }
+        ctx.putImageData(imgData, 0, 0);
+      }
+
+      // 3. Glaze
+      if (useCustomGlazeColor) {
+        ctx.fillStyle = customGlazeColor;
+        ctx.globalAlpha = glazeOpacity / 100;
+        ctx.fillRect(0, 0, 1024, 1024);
+        ctx.globalAlpha = 1.0;
+      } else if (glazeId !== 'none') {
+        ctx.fillStyle = getGlazeColorHex(glazeId);
+        ctx.globalAlpha = 0.55;
+        ctx.fillRect(0, 0, 1024, 1024);
+        ctx.globalAlpha = 1.0;
+      }
+
+      // 4. Crackled
+      if (finishType === 'crackled') {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(25, 40, 70, 0.35)';
+        ctx.lineWidth = 1.5;
+        const step = 56;
+        for (let x = 0; x <= 1024; x += step) {
+          for (let y = 0; y <= 1024; y += step) {
+            const offsetX = Math.sin(x * 0.03 + y * 0.05) * 14;
+            const offsetY = Math.cos(x * 0.05 + y * 0.03) * 14;
+            ctx.beginPath();
+            ctx.moveTo(x + offsetX, y + offsetY);
+            ctx.lineTo(x + step + offsetY, y + step + offsetX);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x + step - offsetX, y + offsetY);
+            ctx.lineTo(x - offsetY, y + step + offsetX);
+            ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+
+      // 5. Decorations
+      if (decorations) {
+        decorations.forEach(decId => {
+          const img = decImages[decId];
+          if (img && img.naturalHeight) {
+            const y = decId.startsWith('rim-') ? 40 : (decId.startsWith('base-') ? 880 : null);
+            if (y !== null) {
+              ctx.save();
+              
+              // Debug red box
+              ctx.fillStyle = 'red';
+              ctx.fillRect(0, y, 1024, 100);
+
+              const pat = ctx.createPattern(img, 'repeat-x');
+              if (pat) {
+                ctx.fillStyle = pat;
+                ctx.translate(0, y);
+                const scale = 100 / img.naturalHeight;
+                ctx.scale(scale, scale);
+                ctx.fillRect(0, 0, 1024 / scale, img.naturalHeight);
+              }
+              ctx.restore();
+            }
+          }
+        });
+      }
+
+      // 6. Decals
+      if (equippedDecals) {
+        equippedDecals.forEach(dec => {
+          const img = eqImages[dec.id];
+          if (!img || !img.naturalWidth) return;
+          const cx = 512 + (dec.x / 100) * 512;
+          const cy = 512 - (dec.y / 100) * 440;
+          const decSize = 340 * dec.scale;
+          const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : 1.0;
+          const physicalCircumference = Math.PI * potWidth;
+          const physicalAspect = physicalCircumference / potHeight;
+          const drawH = decSize;
+          const drawW = decSize * aspect;
+          const squish = 1 / physicalAspect;
+
+          if (dec.isWrap) {
+            ctx.save();
+            const dx = (dec.x / 100) * 512;
+            ctx.translate(512 + dx, cy);
+            ctx.scale(squish, 1);
+            ctx.rotate(THREE.MathUtils.degToRad(-dec.rotation));
+            const localCanvasWidth = 1024 / squish;
+            const minTiles = Math.max(1, Math.round(localCanvasWidth / drawW));
+            const tileW = localCanvasWidth / minTiles;
+            const actualDrawH = tileW / aspect; // preserve aspect ratio!
+            for (let tx = -localCanvasWidth * 1.5 - tileW; tx <= localCanvasWidth * 1.5 + tileW; tx += tileW) {
+              ctx.drawImage(img, tx, -actualDrawH / 2, tileW, actualDrawH);
+            }
+            ctx.restore();
+          } else {
+            const offsets = [0, -1024, 1024];
+            offsets.forEach(offsetX => {
+              ctx.save();
+              ctx.translate(cx + offsetX, cy);
+              ctx.scale(squish, 1);
+              ctx.rotate(THREE.MathUtils.degToRad(-dec.rotation));
+              ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+              ctx.restore();
+            });
+          }
+        });
+      }
+
+      // 7. Paths
+      if (drawingPathsRef.current.length > 0) {
+        drawingPathsRef.current.forEach(stroke => {
+          if (stroke.points.length === 0) return;
+          ctx.beginPath();
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.strokeStyle = stroke.color;
+          ctx.lineWidth = stroke.size;
+          ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+          if (stroke.points.length === 1) {
+            ctx.lineTo(stroke.points[0].x, stroke.points[0].y);
+          } else {
+            for (let i = 1; i < stroke.points.length; i++) {
+              const prev = stroke.points[i - 1];
+              const curr = stroke.points[i];
+              // Handle UV seam to prevent lines crossing the entire canvas
+              if (Math.abs(curr.x - prev.x) > 512) {
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(curr.x, curr.y);
+              } else {
+                ctx.lineTo(curr.x, curr.y);
+              }
+            }
+          }
+          ctx.stroke();
+        });
+      }
+
+      // 8. Update Texture
+      if (!material.map || material.map.image !== canvas) {
+        const potTexture = new THREE.CanvasTexture(canvas);
+        potTexture.colorSpace = THREE.SRGBColorSpace;
+        potTexture.wrapS = THREE.RepeatWrapping;
+        potTexture.wrapT = THREE.ClampToEdgeWrapping;
+        material.map = potTexture;
+      }
+      material.color.set('#FFFFFF');
+      material.map.needsUpdate = true;
+      material.needsUpdate = true;
+    });
+
+    let roughnessVal = finishType === 'matte' ? 0.88 : finishType === 'crackled' ? 0.35 : 0.12;
+    if (finishType === 'matte' && clayGrainLevel > 0) {
+      roughnessVal = Math.min(1.0, roughnessVal + (clayGrainLevel / 100) * 0.1);
     }
-    if ('metalness' in material) {
-      (material as any).metalness = metalnessVal;
+    if (finishType === 'glossy' && glazeGlossyLevel !== undefined) {
+      roughnessVal = Math.max(0.02, 0.25 - (glazeGlossyLevel / 100) * 0.22);
     }
-    if ('clearcoat' in material) {
-      (material as any).clearcoat = clearcoatVal;
-    }
+
+    const metalnessVal = useCustomGlazeColor ? (glazeMetallicLevel / 100) : (glazeId === 'gold' ? 0.85 : 0.08);
+
+    material.roughness = roughnessVal;
+    material.metalness = metalnessVal;
     material.needsUpdate = true;
-  }, [clayId, useCustomClayColor, clayColor1, clayColor2, glazeId, useCustomGlazeColor, customGlazeColor, glazeOpacity, glazeGlossyLevel, glazeMetallicLevel, finishType]);
+    
+    return () => {
+      isCancelled = true;
+    };
+  }, [clayId, useCustomClayColor, clayColor1, clayColor2, clayGrainLevel, glazeId, useCustomGlazeColor, customGlazeColor, glazeOpacity, glazeGlossyLevel, glazeMetallicLevel, finishType, equippedDecals, decorations, potWidth, potHeight]);
 
-  // 4. Update Decals & Text Overlay meshes
+  // 4. Update Text Overlay & Engraving
   useEffect(() => {
     const modelObject = modelObjectRef.current;
     if (!modelObject) return;
 
-    // Clear old decals group
     if (decalGroupRef.current) {
       modelObject.remove(decalGroupRef.current);
     }
@@ -772,94 +1071,233 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
     decalGroupRef.current = decalGroup;
     modelObject.add(decalGroup);
 
-    const isDefault = !(shapeId === 'custom3d' && fileData);
-    if (!isDefault) return;
-
-    const roughnessVal = finishType === 'matte' ? 0.9 : 0.35;
-    const metalnessVal = glazeId === 'gold' ? 0.85 : 0.08;
-
     const box = new THREE.Box3().setFromObject(modelObject);
     const sizeVec = new THREE.Vector3();
     box.getSize(sizeVec);
     const radius = sizeVec.x / 2;
 
-    equippedDecals.forEach((dec) => {
-      const size = (radius * 0.9) * dec.scale;
-      const decalGeom = new THREE.PlaneGeometry(size, size);
-      
-      const textureUrl = dec.url || getDecalSVGDataURL(dec.decalId);
-      const texture = new THREE.TextureLoader().load(textureUrl, (loadedTex) => {
-        loadedTex.needsUpdate = true;
+    let targetMesh: THREE.Mesh | null = null;
+    if (modelObject instanceof THREE.Mesh) {
+      targetMesh = modelObject;
+    } else {
+      modelObject.traverse((child) => {
+        if (child instanceof THREE.Mesh && !targetMesh) {
+          targetMesh = child;
+        }
       });
-      
-      const decalMat = new THREE.MeshStandardMaterial({
-        map: texture,
-        transparent: true,
-        roughness: roughnessVal,
-        metalness: metalnessVal,
-        depthWrite: false,
-        depthTest: true,
-        side: THREE.DoubleSide
-      });
+    }
 
-      const decalMesh = new THREE.Mesh(decalGeom, decalMat);
-      
-      const px = (dec.x / 80) * (radius * 0.8);
-      const py = (dec.y / 100) * (sizeVec.y * 0.45);
-      const pz = radius + 0.35; 
-      
-      decalMesh.position.set(px, py, pz);
-      decalMesh.rotation.z = -THREE.MathUtils.degToRad(dec.rotation);
-      decalMesh.renderOrder = 100;
-      
-      decalMesh.name = dec.id;
-      decalGroup.add(decalMesh);
-    });
-
-    if (engravedText) {
-      const textGeom = new THREE.PlaneGeometry(radius * 1.5, radius * 0.4);
+    if (engravedText && targetMesh) {
       const textTexture = createTextTexture(engravedText, engravingColor);
       const textMat = new THREE.MeshBasicMaterial({
         map: textTexture,
         transparent: true,
+        polygonOffset: true,
+        polygonOffsetFactor: -12,
+        polygonOffsetUnits: -12,
         depthWrite: false
       });
-      const textMesh = new THREE.Mesh(textGeom, textMat);
-      textMesh.position.set(0, -sizeVec.y * 0.35, radius + 0.25);
-      decalGroup.add(textMesh);
-    }
-  }, [equippedDecals, engravedText, engravingColor, shapeId, fileData, potWidth, potHeight, rimScale, baseScale, finishType, glazeId]);
 
-  // 5. Setup dynamic Raycast clicking/selection on decals
+      const targetY = -sizeVec.y * 0.35;
+      const rayStart = new THREE.Vector3(0, targetY, radius * 3);
+      const rayDir = new THREE.Vector3(0, 0, -1);
+      const raycaster = new THREE.Raycaster(rayStart, rayDir);
+      const intersects = raycaster.intersectObject(targetMesh, false);
+
+      let hitPoint = new THREE.Vector3(0, targetY, radius);
+      let hitNormal = new THREE.Vector3(0, 0, 1);
+      if (intersects.length > 0) {
+        hitPoint = intersects[0].point.clone();
+        if (intersects[0].face) hitNormal = intersects[0].face.normal.clone();
+      }
+
+      const dummy = new THREE.Object3D();
+      dummy.position.copy(hitPoint);
+      dummy.lookAt(hitPoint.clone().sub(hitNormal));
+
+      const textSize = new THREE.Vector3(radius * 1.5, radius * 0.45, radius * 1.2);
+      try {
+        const textGeom = new DecalGeometry(targetMesh, hitPoint, dummy.rotation, textSize);
+        const textMesh = new THREE.Mesh(textGeom, textMat);
+        decalGroup.add(textMesh);
+      } catch (err) {
+        const textGeom = new THREE.PlaneGeometry(radius * 1.5, radius * 0.4);
+        const textMesh = new THREE.Mesh(textGeom, textMat);
+        textMesh.position.set(0, targetY, radius + 0.25);
+        decalGroup.add(textMesh);
+      }
+    }
+  }, [engravedText, engravingColor, shapeId, fileData, potWidth, potHeight, rimScale, baseScale]);
+
+  const isDraggingRef = useRef(false);
+  const stateRef = useRef({ selectedDecalId, equippedDecals, isDrawingMode, onSelectDecal, onUpdateDecal, onDrawStroke, brushColor, brushSize });
+  stateRef.current = { selectedDecalId, equippedDecals, isDrawingMode, onSelectDecal, onUpdateDecal, onDrawStroke, brushColor, brushSize };
+
+  // 5. Setup dynamic Raycast clicking, direct pointer dragging, and wheel scaling on decals
   useEffect(() => {
     const renderer = rendererRef.current;
     const camera = cameraRef.current;
+    const controls = controlsRef.current;
     if (!renderer || !camera) return;
 
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    const onCanvasClick = (event: MouseEvent) => {
-      const decalGroup = decalGroupRef.current;
-      if (!decalGroup) return;
-
+    const onPointerDown = (event: PointerEvent) => {
+      const { isDrawingMode, onDrawStroke, selectedDecalId, equippedDecals, onSelectDecal, onUpdateDecal, brushColor, brushSize } = stateRef.current;
       const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
 
+      const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(decalGroup.children);
 
+      const modelObject = modelObjectRef.current;
+      if (!modelObject) return;
+
+      if (isDrawingMode && onDrawStroke) {
+        const intersects = raycaster.intersectObject(modelObject, true);
+        const hit = intersects.find(i => i.uv);
+        if (hit) {
+          event.stopPropagation();
+          isDraggingRef.current = true;
+          const uv = hit.uv!;
+          const canvasX = uv.x * 1024;
+          const canvasY = (1 - uv.y) * 1024;
+          
+          lastDrawPointRef.current = { x: canvasX, y: canvasY };
+          const ctx = textureCanvasRef.current?.getContext('2d');
+          if (ctx && materialRef.current?.map) {
+             ctx.beginPath();
+             ctx.lineCap = 'round';
+             ctx.fillStyle = brushColor;
+             ctx.arc(canvasX, canvasY, brushSize / 2, 0, Math.PI * 2);
+             ctx.fill();
+             materialRef.current.map.needsUpdate = true;
+          }
+          
+          onDrawStroke(canvasX, canvasY, true);
+          if (controls) controls.enabled = false;
+        }
+        return;
+      }
+
+      // Raycast against decal 3D meshes (text engravings or decal meshes) to select
+      const decalGroup = decalGroupRef.current;
+      if (decalGroup && decalGroup.children.length > 0) {
+        const decalIntersects = raycaster.intersectObjects(decalGroup.children);
+        if (decalIntersects.length > 0) {
+          onSelectDecal(decalIntersects[0].object.name);
+        }
+      }
+
+      if (!selectedDecalId || !onUpdateDecal) return;
+      const dec = equippedDecals.find(d => d.id === selectedDecalId);
+      if (!dec) return;
+
+      const intersects = raycaster.intersectObject(modelObject, true);
       if (intersects.length > 0) {
-        onSelectDecal(intersects[0].object.name);
+        event.stopPropagation();
+        isDraggingRef.current = true;
+        if (controls) controls.enabled = false;
       }
     };
 
-    renderer.domElement.addEventListener('click', onCanvasClick);
-    return () => {
-      renderer.domElement.removeEventListener('click', onCanvasClick);
+    const onPointerMove = (event: PointerEvent) => {
+      if (!isDraggingRef.current) return;
+
+      const { isDrawingMode, onDrawStroke, selectedDecalId, onUpdateDecal, brushColor, brushSize } = stateRef.current;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      const mouse = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
+
+      const modelObject = modelObjectRef.current;
+      if (!modelObject) return;
+
+      if (isDrawingMode && onDrawStroke) {
+        const intersects = raycaster.intersectObject(modelObject, true);
+        const hit = intersects.find(i => i.uv);
+        if (hit) {
+          const uv = hit.uv!;
+          const canvasX = uv.x * 1024;
+          const canvasY = (1 - uv.y) * 1024;
+          
+          if (lastDrawPointRef.current && textureCanvasRef.current && materialRef.current?.map) {
+             const ctx = textureCanvasRef.current.getContext('2d');
+             if (ctx) {
+                // Seam handling logic
+                if (Math.abs(canvasX - lastDrawPointRef.current.x) > 512) {
+                   onDrawStroke(canvasX, canvasY, true); // End previous and start new stroke
+                   lastDrawPointRef.current = { x: canvasX, y: canvasY };
+                   return; // Skip drawing this segment to avoid the cross-canvas line
+                }
+
+                ctx.beginPath();
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = brushColor;
+                ctx.lineWidth = brushSize;
+                ctx.moveTo(lastDrawPointRef.current.x, lastDrawPointRef.current.y);
+                ctx.lineTo(canvasX, canvasY);
+                ctx.stroke();
+                materialRef.current.map.needsUpdate = true;
+             }
+          }
+          lastDrawPointRef.current = { x: canvasX, y: canvasY };
+
+          onDrawStroke(canvasX, canvasY, false);
+        }
+        return;
+      }
+
+      if (!selectedDecalId || !onUpdateDecal) return;
+
+      const intersects = raycaster.intersectObject(modelObject, true);
+      const decHit = intersects.find(i => i.uv);
+      if (decHit) {
+        const uv = decHit.uv!;
+        
+        // Map 3D UV intersection directly to 2D Texture Canvas coordinates (1024x1024)
+        const canvasX = uv.x * 1024;
+        const canvasY = (1 - uv.y) * 1024; // WebGL V=0 is bottom, Canvas Y=0 is top
+        
+        // Convert canvas X/Y to decal percentage offset properties
+        // cx = 512 + (dec.x / 100) * 512 => dec.x = (cx - 512) / 5.12
+        // cy = 512 - (dec.y / 100) * 440 => dec.y = (512 - cy) / 4.4
+        let newX = Math.round((canvasX - 512) / 5.12);
+        let newY = Math.round((512 - canvasY) / 4.4);
+
+        newY = Math.max(-100, Math.min(100, newY));
+
+        onUpdateDecal(selectedDecalId, { x: newX, y: newY });
+      }
     };
-  }, [equippedDecals, onSelectDecal]);
+
+    const onPointerUp = () => {
+      lastDrawPointRef.current = null;
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        if (controls) controls.enabled = true;
+      }
+    };
+
+    const el = renderer.domElement;
+    el.addEventListener('pointerdown', onPointerDown, { capture: true });
+    window.addEventListener('pointermove', onPointerMove, { capture: true });
+    window.addEventListener('pointerup', onPointerUp, { capture: true });
+
+    return () => {
+      el.removeEventListener('pointerdown', onPointerDown, { capture: true });
+      window.removeEventListener('pointermove', onPointerMove, { capture: true });
+      window.removeEventListener('pointerup', onPointerUp, { capture: true });
+      if (controls) controls.enabled = true;
+    };
+  }, []); // Empty dependency array so listeners are not constantly re-bound
 
   // Highlight selected decal outline in 3D (visual feedback)
   useEffect(() => {
@@ -868,13 +1306,15 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
     
     decalGroup.children.forEach((child) => {
       if (child instanceof THREE.Mesh) {
-        const mat = child.material as THREE.MeshStandardMaterial;
-        if (child.name === selectedDecalId) {
-          mat.emissive.setHex(0x4e9f3d);
-          mat.emissiveIntensity = 0.25;
-        } else {
-          mat.emissive.setHex(0x000000);
-          mat.emissiveIntensity = 0.0;
+        const mat = child.material as any;
+        if (mat && mat.emissive) {
+          if (child.name === selectedDecalId) {
+            mat.emissive.setHex(0x4e9f3d);
+            mat.emissiveIntensity = 0.25;
+          } else {
+            mat.emissive.setHex(0x000000);
+            mat.emissiveIntensity = 0.0;
+          }
         }
       }
     });

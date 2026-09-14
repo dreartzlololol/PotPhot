@@ -1,16 +1,14 @@
-import time
 import sys
+from rembg import remove
 from PIL import Image
 
-try:
-    from rembg import remove
-except ImportError:
-    print('Waiting for rembg/onnxruntime...')
-    time.sleep(10)
-    from rembg import remove
+input_path = sys.argv[1]
+output_path = sys.argv[2]
 
-print('Removing background...')
-input_img = Image.open('dist/mascot.png')
-output_img = remove(input_img)
-output_img.save('public/mascot.png')
-print('Done!')
+try:
+    input_image = Image.open(input_path)
+    output_image = remove(input_image)
+    output_image.save(output_path)
+    print("Background removed successfully!")
+except Exception as e:
+    print(f"Error removing background: {e}")

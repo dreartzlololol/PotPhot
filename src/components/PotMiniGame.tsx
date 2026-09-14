@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Flame, ShoppingCart, RotateCcw, ChevronLeft, ChevronRight, UploadCloud, Trash2 } from 'lucide-react';
 import type { CustomPot } from '../pages/PotCollection';
-import { ThreeModelViewer } from './ThreeModelViewer';
+import { ThreeModelViewer, getDecalSVGDataURL } from './ThreeModelViewer';
+import { TetrisGame } from './TetrisGame';
+import ReactDOM from 'react-dom';
 
 
 
@@ -34,19 +36,27 @@ const GLAZES = [
 
 const DECORATIONS = [
   // Rim decals
-  { id: 'rim-gold',     zone: 'rim',  emoji: '✨', label: 'ขอบทอง',       cost: 80 },
+  { id: 'rim-gold',     zone: 'body', emoji: '✨', label: 'ขอบทอง',       cost: 80 },
   { id: 'rim-dots',     zone: 'rim',  emoji: '⚪', label: 'ขอบจุดมุก',    cost: 60 },
   { id: 'rim-wave',     zone: 'rim',  emoji: '〰️', label: 'ขอบคลื่น',     cost: 50 },
+  { id: 'rim-meander',  zone: 'rim',  emoji: '🏛️', label: 'ขอบลายกรีก',   cost: 70 },
+  { id: 'rim-bead-gold',zone: 'rim',  emoji: '🟡', label: 'ขอบลูกปัดทอง', cost: 90 },
   // Body decals (no longer emojis, rendered as high-end vector graphics)
   { id: 'body-dragon',  zone: 'body', emoji: '🐉', label: 'มังกรโบราณ',   cost: 200 },
   { id: 'body-lotus',   zone: 'body', emoji: '🪷', label: 'สัตตบงกช',     cost: 120 },
   { id: 'body-phoenix', zone: 'body', emoji: '🦅', label: 'หงส์เหิน',       cost: 180 },
   { id: 'body-bamboo',  zone: 'body', emoji: '🎋', label: 'กอไผ่คราม',     cost: 90 },
   { id: 'body-star',    zone: 'body', emoji: '⭐', label: 'ประจำยามทอง',  cost: 70 },
+  { id: 'body-benjarong', zone: 'body', emoji: '🏵️', label: 'เบญจรงค์',    cost: 250 },
+  { id: 'body-kranok-flame', zone: 'body', emoji: '🔥', label: 'ลายกนก',    cost: 150 },
+  { id: 'body-koi-pair', zone: 'body', emoji: '🐟', label: 'ปลาคาร์ฟคู่',   cost: 140 },
+  { id: 'body-crane-clouds', zone: 'body', emoji: '🕊️', label: 'นกกระเรียน', cost: 160 },
+  { id: 'body-cherry-blossom', zone: 'body', emoji: '🌸', label: 'ซากุระ',   cost: 110 },
   // Base decals
   { id: 'base-cloud',   zone: 'base', emoji: '☁️', label: 'เมฆลอย',       cost: 80 },
   { id: 'base-ring',    zone: 'base', emoji: '⭕', label: 'ฐานขอบทอง',    cost: 60 },
   { id: 'base-flame',   zone: 'base', emoji: '🔥', label: 'ลายกนกเปลว',   cost: 90 },
+  { id: 'base-water-wave', zone: 'base', emoji: '🌊', label: 'ฐานเกลียวคลื่น', cost: 75 },
 ];
 
 const CATEGORIES = [
@@ -54,7 +64,7 @@ const CATEGORIES = [
   { id: 'clay',  label: 'เนื้อดินปั้น',   icon: '🧱' },
   { id: 'glaze', label: 'เคลือบสี', icon: '✨' },
   { id: 'decal', label: 'ลวดลายรอบใบ', icon: '🎨' },
-  { id: 'effects', label: 'ความคืบหน้า / สปิน', icon: '💫' }
+  { id: 'effects', label: 'พื้นผิว / หมุน', icon: '💫' }
 ];
 
 export interface EquippedDecal {
@@ -66,167 +76,35 @@ export interface EquippedDecal {
   y: number;
   scale: number;
   rotation: number;
+  isWrap?: boolean;
+}
+
+export interface StrokePoint { x: number; y: number; }
+export interface DrawingStroke {
+  points: StrokePoint[];
+  color: string;
+  size: number;
 }
 
 // ─── Custom SVG Decal Graphics Component ───────────────────────────────────────
 
 export const DecalGraphic: React.FC<{ decalId: string; size?: number }> = ({ decalId, size = 64 }) => {
-  switch (decalId) {
-    case 'body-dragon':
-      return (
-        <svg width={size} height={size} viewBox="0 0 100 100" style={{ pointerEvents: 'none' }}>
-          <defs>
-            <linearGradient id="gold-grad-dragon" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FFE082" />
-              <stop offset="50%" stopColor="#FFB300" />
-              <stop offset="100%" stopColor="#FF6F00" />
-            </linearGradient>
-          </defs>
-          {/* Detailed Thai/Chinese Dragon silhouette */}
-          <path 
-            d="M 25 65 C 20 50, 30 35, 45 35 C 55 35, 60 45, 65 42 C 72 38, 70 25, 82 28 C 88 30, 85 45, 75 48 C 65 52, 55 68, 42 68 C 30 68, 28 58, 25 65 Z" 
-            fill="url(#gold-grad-dragon)" 
-            filter="drop-shadow(0 2px 4px rgba(0,0,0,0.2))"
-          />
-          <path 
-            d="M 45,35 Q 38,40 38,48 T 50,55 T 62,48" 
-            fill="none" stroke="#FFF59D" strokeWidth="2.5" strokeLinecap="round"
-          />
-          {/* Dragon scales & flames */}
-          <path d="M 68,35 Q 60,30 55,20 Q 52,32 68,35 Z" fill="#FF8F00" />
-          <path d="M 40,58 Q 30,68 20,68 Q 28,58 40,58 Z" fill="#FF8F00" />
-          <circle cx="74" cy="35" r="2.5" fill="#E63946" />
-        </svg>
-      );
-    case 'body-lotus':
-      return (
-        <svg width={size} height={size} viewBox="0 0 100 100" style={{ pointerEvents: 'none' }}>
-          {/* Underlay Leaf */}
-          <path d="M 15 55 C 10 70, 90 70, 85 55 C 70 50, 30 50, 15 55 Z" fill="#1B5E20" />
-          <path d="M 22 56 C 18 68, 82 68, 78 56 C 65 52, 35 52, 22 56 Z" fill="#2E7D32" />
-          {/* Pink Lotus Petals */}
-          <path d="M 50 20 C 40 40, 25 58, 50 68 C 75 58, 60 40, 50 20 Z" fill="#D81B60" />
-          <path d="M 50 30 C 38 45, 30 58, 50 68 C 70 58, 62 45, 50 30 Z" fill="#E91E63" />
-          <path d="M 50 40 C 43 50, 38 60, 50 68 C 62 60, 57 50, 50 40 Z" fill="#F48FB1" />
-          <path d="M 50 48 C 45 55, 42 62, 50 68 C 58 62, 55 55, 50 48 Z" fill="#FFF" opacity="0.9" />
-          {/* Yellow Pollen center */}
-          <circle cx="50" cy="58" r="5" fill="#FBC02D" />
-        </svg>
-      );
-    case 'body-phoenix':
-      return (
-        <svg width={size} height={size} viewBox="0 0 100 100" style={{ pointerEvents: 'none' }}>
-          <defs>
-            <linearGradient id="phoenix-gold" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#D84315" />
-              <stop offset="50%" stopColor="#FF8F00" />
-              <stop offset="100%" stopColor="#FBC02D" />
-            </linearGradient>
-          </defs>
-          {/* Swan/Phoenix silhouette body */}
-          <path 
-            d="M 12 45 Q 32 15, 55 25 Q 40 38, 12 45 Z" 
-            fill="url(#phoenix-gold)" 
-          />
-          <path 
-            d="M 12 55 Q 28 68, 50 58 Q 38 48, 12 55 Z" 
-            fill="url(#phoenix-gold)" 
-          />
-          <path 
-            d="M 55 25 C 60 20, 72 20, 75 28 C 70 32, 62 30, 57 30 Z" 
-            fill="url(#phoenix-gold)" 
-          />
-          <path d="M 75 28 L 84 32 L 74 35 Z" fill="#FF6F00" />
-          {/* Majestic flowing tail */}
-          <path d="M 28 60 Q 42 85, 68 88 Q 48 76, 28 60 Z" fill="url(#phoenix-gold)" />
-          <path d="M 22 55 Q 12 78, 32 90 Q 22 72, 22 55 Z" fill="url(#phoenix-gold)" />
-        </svg>
-      );
-    case 'body-bamboo':
-      return (
-        <svg width={size} height={size} viewBox="0 0 100 100" style={{ pointerEvents: 'none' }}>
-          {/* Bamboo stems */}
-          <rect x="35" y="15" width="7" height="70" rx="3" fill="#2E7D32" />
-          <rect x="55" y="32" width="6" height="53" rx="3" fill="#388E3C" />
-          {/* Joints */}
-          <line x1="33" y1="35" x2="44" y2="35" stroke="#1B5E20" strokeWidth="2.5" />
-          <line x1="33" y1="52" x2="44" y2="52" stroke="#1B5E20" strokeWidth="2.5" />
-          <line x1="33" y1="70" x2="44" y2="70" stroke="#1B5E20" strokeWidth="2.5" />
-          <line x1="53" y1="50" x2="63" y2="50" stroke="#1B5E20" strokeWidth="2.5" />
-          <line x1="53" y1="68" x2="63" y2="68" stroke="#1B5E20" strokeWidth="2.5" />
-          {/* Leaves */}
-          <path d="M 42 35 C 52 30, 58 20, 53 15 C 48 20, 44 30, 42 35 Z" fill="#4CAF50" />
-          <path d="M 35 52 C 24 48, 18 38, 22 33 C 28 38, 32 48, 35 52 Z" fill="#4CAF50" />
-          <path d="M 61 50 C 70 46, 75 38, 70 33 C 66 38, 63 45, 61 50 Z" fill="#81C784" />
-        </svg>
-      );
-    case 'body-star':
-      return (
-        <svg width={size} height={size} viewBox="0 0 100 100" style={{ pointerEvents: 'none' }}>
-          <defs>
-            <linearGradient id="star-gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FFE082" />
-              <stop offset="100%" stopColor="#E65100" />
-            </linearGradient>
-          </defs>
-          {/* Traditional Thai Kanok style flower/star ornament */}
-          <path 
-            d="M 50 10 C 52 35, 65 48, 90 50 C 65 52, 52 65, 50 90 C 48 65, 35 52, 10 50 C 35 48, 48 35, 50 10 Z" 
-            fill="url(#star-gold-grad)" 
-          />
-          <path 
-            d="M 50 25 C 51 40, 58 49, 75 50 C 58 51, 51 60, 50 75 C 49 60, 42 51, 25 50 C 42 49, 49 40, 50 25 Z" 
-            fill="#FFF" 
-            opacity="0.85"
-          />
-          <circle cx="50" cy="50" r="5" fill="#D84315" />
-        </svg>
-      );
-    case 'rim-gold':
-      return (
-        <svg width={size} height={12} viewBox="0 0 100 12" style={{ pointerEvents: 'none' }}>
-          <rect x="0" y="2" width="100" height="8" rx="2" fill="#FFA000" />
-          <rect x="0" y="4" width="100" height="4" rx="1" fill="#FFD54F" />
-        </svg>
-      );
-    case 'rim-dots':
-      return (
-        <svg width={size} height={12} viewBox="0 0 100 12" style={{ pointerEvents: 'none' }}>
-          <circle cx="10" cy="6" r="4" fill="#E0E0E0" stroke="#9E9E9E" strokeWidth="1" />
-          <circle cx="30" cy="6" r="4" fill="#E0E0E0" stroke="#9E9E9E" strokeWidth="1" />
-          <circle cx="50" cy="6" r="4" fill="#E0E0E0" stroke="#9E9E9E" strokeWidth="1" />
-          <circle cx="70" cy="6" r="4" fill="#E0E0E0" stroke="#9E9E9E" strokeWidth="1" />
-          <circle cx="90" cy="6" r="4" fill="#E0E0E0" stroke="#9E9E9E" strokeWidth="1" />
-        </svg>
-      );
-    case 'rim-wave':
-      return (
-        <svg width={size} height={12} viewBox="0 0 100 12" style={{ pointerEvents: 'none' }}>
-          <path d="M 0 6 Q 12 0, 25 6 T 50 6 T 75 6 T 100 6" fill="none" stroke="#CD853F" strokeWidth="3" />
-        </svg>
-      );
-    case 'base-cloud':
-      return (
-        <svg width={size} height={16} viewBox="0 0 100 16" style={{ pointerEvents: 'none' }}>
-          <path d="M 10 12 C 15 8, 25 8, 30 12 C 35 8, 45 8, 50 12 C 55 8, 65 8, 70 12 C 75 8, 85 8, 90 12" fill="none" stroke="#81D4FA" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
-      );
-    case 'base-ring':
-      return (
-        <svg width={size} height={16} viewBox="0 0 100 16" style={{ pointerEvents: 'none' }}>
-          <line x1="0" y1="4" x2="100" y2="4" stroke="#FFB300" strokeWidth="2" />
-          <line x1="0" y1="10" x2="100" y2="10" stroke="#FFB300" strokeWidth="2" />
-        </svg>
-      );
-    case 'base-flame':
-      return (
-        <svg width={size} height={16} viewBox="0 0 100 16" style={{ pointerEvents: 'none' }}>
-          <path d="M 0 14 Q 10 2, 20 14 T 40 14 T 60 14 T 80 14 T 100 14" fill="none" stroke="#FF5722" strokeWidth="2.5" />
-        </svg>
-      );
-    default:
-      return null;
+  if (decalId === 'body-dragon') {
+    return (
+      <img 
+        src="/chinese_dragon_pattern.png" 
+        alt="Dragon Decal" 
+        style={{ width: size, height: size, objectFit: 'contain', pointerEvents: 'none' }} 
+      />
+    );
   }
+  return (
+    <img 
+      src={getDecalSVGDataURL(decalId)} 
+      alt="Decal" 
+      style={{ width: size, height: size, objectFit: 'contain', pointerEvents: 'none' }} 
+    />
+  );
 };
 
 
@@ -329,6 +207,23 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
   const [decorations, setDecorations] = useState<Set<string>>(new Set());
   const [potName,     setPotName]     = useState('');
   const [showReceipt, setShowReceipt] = useState(false);
+  const [showTetris,  setShowTetris]  = useState(false);
+
+  const [isMounted, setIsMounted] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+
+  React.useEffect(() => {
+    requestAnimationFrame(() => {
+      setIsMounted(true);
+    });
+  }, []);
+
+  const triggerExit = (callback: () => void) => {
+    setIsExiting(true);
+    setTimeout(() => {
+      callback();
+    }, 400);
+  };
 
   // Sculpting States (pot dimensions & scale)
   const [potWidth, setPotWidth] = useState(160);
@@ -337,6 +232,9 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
   const [baseScale, setBaseScale] = useState(1.0);
   const [potScale, setPotScale] = useState(1.0);
   const [referenceObject, setReferenceObject] = useState<'none' | 'iphone' | 'can' | 'coin'>('none');
+  const [refObjectX, setRefObjectX] = useState(0);
+  const [refObjectZ, setRefObjectZ] = useState(0);
+  const [refObjectRotation, setRefObjectRotation] = useState(0);
   const [showAxes, setShowAxes] = useState(true);
 
   // Real-time Dimension Calculations
@@ -373,6 +271,12 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
 
   const [custom3DFileData, setCustom3DFileData] = useState<string | null>(null);
   const [custom3DFileType, setCustom3DFileType] = useState<'stl' | 'obj' | null>(null);
+
+  // Drawing Mode
+  const [isDrawingMode, setIsDrawingMode] = useState(false);
+  const [brushColor, setBrushColor] = useState('#D84315');
+  const [brushSize, setBrushSize] = useState(4);
+  const [drawingPaths, setDrawingPaths] = useState<DrawingStroke[]>([]);
 
   const shape = SHAPES.find(s => s.id === shapeId) || SHAPES[0];
   const clay  = CLAY_TYPES.find(c => c.id === clayId)!;
@@ -431,8 +335,9 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
       url,
       x: 0,
       y: 0,
-      scale: 1.0,
-      rotation: 0
+      scale: decalId === 'body-benjarong' ? 1.5 : 1.0,
+      rotation: 0,
+      isWrap: decalId === 'body-benjarong'
     };
     setEquippedDecals(prev => [...prev, newDec]);
     setSelectedDecalId(newDec.id);
@@ -502,10 +407,27 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
     }));
   };
 
+  const updateDecal = (id: string, updates: Partial<EquippedDecal>) => {
+    setEquippedDecals(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
+  };
+
   const removeSelectedDecal = () => {
     if (!selectedDecalId) return;
     setEquippedDecals(prev => prev.filter(d => d.id !== selectedDecalId));
     setSelectedDecalId(null);
+  };
+
+  const handleDrawStroke = (x: number, y: number, isNewStroke: boolean) => {
+    console.log(`[PotMiniGame] handleDrawStroke: x=${x.toFixed(1)}, y=${y.toFixed(1)}, isNew=${isNewStroke}`);
+    setDrawingPaths(prev => {
+      const newPaths = [...prev];
+      if (isNewStroke || newPaths.length === 0) {
+        newPaths.push({ points: [{ x, y }], color: brushColor, size: brushSize });
+      } else {
+        newPaths[newPaths.length - 1].points.push({ x, y });
+      }
+      return newPaths;
+    });
   };
 
   const handleFinish = () => {
@@ -544,7 +466,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
         equippedDecals
       }
     };
-    onComplete(pot, totalCost);
+    triggerExit(() => onComplete(pot, totalCost));
   };
 
   const handleReset = () => {
@@ -575,8 +497,8 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
     switch (activeCategory) {
       case 'shape':
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0', alignItems: 'center' }}>
+          <div className="split-contents" style={{ display: 'contents' }}>
+            <div className="left-tray-content" style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0', alignItems: 'center' }}>
               {SHAPES.map(s => (
                 <DressUpItem
                   key={s.id}
@@ -615,7 +537,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
               </label>
             </div>
             {/* Sculpting Sliders with Dimension & Scale Controls */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(0,0,0,0.02)', padding: '14px', borderRadius: '16px', border: '1px solid rgba(30,81,40,0.08)' }}>
+            <div className="right-properties-content" style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(0,0,0,0.02)', padding: '14px', borderRadius: '16px', border: '1px solid rgba(30,81,40,0.08)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span>📐 ขนาดมิติและอัตราสเกล (Dimensions & Scale)</span>
@@ -711,6 +633,64 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                     </button>
                   ))}
                 </div>
+
+                {/* Reference Object Position Fine-Tuning */}
+                {referenceObject !== 'none' && (
+                  <div style={{
+                    background: 'rgba(255,152,0,0.06)',
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,152,0,0.2)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    marginTop: '4px'
+                  }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#E65100', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>🎯 ปรับตำแหน่งวัตถุเทียบขนาด:</span>
+                      <button 
+                        type="button" 
+                        onClick={() => { setRefObjectX(0); setRefObjectZ(0); setRefObjectRotation(0); }}
+                        style={{ background: 'none', border: 'none', color: '#D84315', fontSize: '10px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        รีเซ็ตตำแหน่ง
+                      </button>
+                    </div>
+
+                    {/* X Position Offset Slider */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '10px', width: '85px', color: 'var(--text-dark)', fontWeight: 600 }}>↔️ ซ้าย-ขวา (X):</span>
+                      <input 
+                        type="range" min="-40" max="40" value={refObjectX} 
+                        onChange={e => setRefObjectX(Number(e.target.value))} 
+                        style={{ flex: 1 }} 
+                      />
+                      <span style={{ fontSize: '10px', width: '35px', textAlign: 'right', fontWeight: 700 }}>{refObjectX > 0 ? `+${refObjectX}` : refObjectX}</span>
+                    </div>
+
+                    {/* Z Position Offset Slider */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '10px', width: '85px', color: 'var(--text-dark)', fontWeight: 600 }}>↕️ หน้า-หลัง (Z):</span>
+                      <input 
+                        type="range" min="-40" max="40" value={refObjectZ} 
+                        onChange={e => setRefObjectZ(Number(e.target.value))} 
+                        style={{ flex: 1 }} 
+                      />
+                      <span style={{ fontSize: '10px', width: '35px', textAlign: 'right', fontWeight: 700 }}>{refObjectZ > 0 ? `+${refObjectZ}` : refObjectZ}</span>
+                    </div>
+
+                    {/* Rotation Slider */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '10px', width: '85px', color: 'var(--text-dark)', fontWeight: 600 }}>🔄 หมุนวัตถุ:</span>
+                      <input 
+                        type="range" min="-180" max="180" value={refObjectRotation} 
+                        onChange={e => setRefObjectRotation(Number(e.target.value))} 
+                        style={{ flex: 1 }} 
+                      />
+                      <span style={{ fontSize: '10px', width: '35px', textAlign: 'right', fontWeight: 700 }}>{refObjectRotation}°</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* XYZ Axes Helper Toggle */}
@@ -776,8 +756,8 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
         );
       case 'clay':
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0' }}>
+          <div className="split-contents" style={{ display: 'contents' }}>
+            <div className="left-tray-content" style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0' }}>
               {CLAY_TYPES.map(c => (
                 <DressUpItem
                   key={c.id}
@@ -794,7 +774,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
               ))}
             </div>
             {/* Custom Clay Color Pickers */}
-            <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="right-properties-content" style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)' }}>🟤 ผสมสีเนื้อดินไล่ระดับสีปั้นเอง (+฿100)</span>
                 <input 
@@ -841,8 +821,8 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
         );
       case 'glaze':
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0' }}>
+          <div className="split-contents" style={{ display: 'contents' }}>
+            <div className="left-tray-content" style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0' }}>
               {GLAZES.map(g => (
                 <DressUpItem
                   key={g.id}
@@ -861,7 +841,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
               ))}
             </div>
             {/* Custom Glaze properties */}
-            <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div className="right-properties-content" style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)' }}>🎨 ผสมสีและเนื้อเคลือบแก้วเอง (+฿120)</span>
                 <input 
@@ -919,9 +899,9 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
         );
       case 'decal':
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+          <div className="split-contents" style={{ display: 'contents' }}>
             {/* Decal list tray */}
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0' }}>
+            <div className="left-tray-content" style={{ display: 'flex', gap: '8px', overflowX: 'auto', padding: '4px 0' }}>
               {DECORATIONS.map(d => (
                 <DressUpItem
                   key={d.id}
@@ -935,7 +915,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
             </div>
 
             {/* Custom Upload Decal & Sliders */}
-            <div style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="right-properties-content" style={{ background: 'rgba(0,0,0,0.02)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)' }}>🖼️ อัปโหลดลวดลายภาพถ่ายขึ้นกระถาง (+฿150)</span>
@@ -964,6 +944,45 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                     style={{ border: 'none', background: 'transparent', width: '30px', height: '30px', cursor: 'pointer', flexShrink: 0 }}
                   />
                 </div>
+              </div>
+
+              {/* Drawing Mode / Freehand Brush */}
+              <div style={{ borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)' }}>🖌️ วาดลวดลายอิสระ (Brush Mode)</span>
+                  <input 
+                    type="checkbox" 
+                    checked={isDrawingMode} 
+                    onChange={e => setIsDrawingMode(e.target.checked)} 
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                </div>
+                {isDrawingMode && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.7)', padding: '10px', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>สีพู่กัน:</span>
+                      <input 
+                        type="color" 
+                        value={brushColor} 
+                        onChange={e => setBrushColor(e.target.value)} 
+                        style={{ border: 'none', background: 'transparent', width: '30px', height: '30px', cursor: 'pointer' }}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '10px', width: '60px', color: 'var(--text-muted)' }}>ขนาดหัวแปรง:</span>
+                      <input 
+                        type="range" min="1" max="20" 
+                        value={brushSize} 
+                        onChange={e => setBrushSize(Number(e.target.value))} 
+                        style={{ flex: 1 }} 
+                      />
+                      <span style={{ fontSize: '10px', width: '20px', textAlign: 'right' }}>{brushSize}</span>
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#4E9F3D', fontWeight: 600, fontStyle: 'italic' }}>
+                      👆 ลากเมาส์ / ใช้นิ้ววาดบนกระถางได้เลย!
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Individual Decal Fine-Tuning Controls */}
@@ -1031,8 +1050,16 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
         );
       case 'effects':
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', background: 'rgba(0,0,0,0.02)', padding: '12px', borderRadius: '14px' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)' }}>✨ พื้นผิวดินเผาและการสปินแป้นหมุน</div>
+          <div className="split-contents" style={{ display: 'contents' }}>
+            <div className="left-tray-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '48px', opacity: 0.5 }}>💫</div>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary)' }}>เอฟเฟกต์การหมุน</div>
+              <div style={{ fontSize: '12px', padding: '0 20px', lineHeight: 1.6 }}>
+                คุณสามารถปรับแต่ง <b>ความเร็วในการหมุน</b> และ <b>พื้นผิวการเคลือบเงา</b> ได้ที่แผงควบคุมด้านขวามือ
+              </div>
+            </div>
+            <div className="right-properties-content" style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', background: 'rgba(0,0,0,0.02)', padding: '12px', borderRadius: '14px' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)' }}>✨ พื้นผิวดินเผาและการสปินแป้นหมุน</div>
             
             {/* Clay Finish */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1066,16 +1093,39 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
               <span style={{ fontSize: '11px', width: '120px', fontWeight: 600, color: 'var(--text-dark)' }}>ความเร็วหมุนแท่น:</span>
               <input 
                 type="range" min="0" max="30" step="1"
-                value={31 - spinSpeed} 
+                value={30 - spinSpeed} 
                 onChange={e => {
                   const val = Number(e.target.value);
-                  setSpinSpeed(val === 31 ? 0 : 31 - val);
+                  setSpinSpeed(val === 30 ? 0 : 30 - val);
                 }} 
                 style={{ flex: 1 }} 
               />
               <span style={{ fontSize: '11px', width: '60px', textAlign: 'right' }}>
                 {spinSpeed === 0 ? 'หยุดหมุน' : `${(30 / spinSpeed).toFixed(1)}x`}
               </span>
+            </div>
+
+            {/* Reference Object Position & Rotation */}
+            {referenceObject !== 'none' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '10px' }}>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-dark)' }}>ปรับตำแหน่งวัตถุอ้างอิงขนาด:</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '10px', width: '60px', color: 'var(--text-muted)' }}>ซ้าย/ขวา (X):</span>
+                  <input type="range" min="-30" max="30" value={refObjectX} onChange={e => setRefObjectX(Number(e.target.value))} style={{ flex: 1 }} />
+                  <span style={{ fontSize: '10px', width: '20px', textAlign: 'right' }}>{refObjectX}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '10px', width: '60px', color: 'var(--text-muted)' }}>หน้า/หลัง (Z):</span>
+                  <input type="range" min="-30" max="30" value={refObjectZ} onChange={e => setRefObjectZ(Number(e.target.value))} style={{ flex: 1 }} />
+                  <span style={{ fontSize: '10px', width: '20px', textAlign: 'right' }}>{refObjectZ}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '10px', width: '60px', color: 'var(--text-muted)' }}>หมุนทิศทาง:</span>
+                  <input type="range" min="-180" max="180" value={refObjectRotation} onChange={e => setRefObjectRotation(Number(e.target.value))} style={{ flex: 1 }} />
+                  <span style={{ fontSize: '10px', width: '30px', textAlign: 'right' }}>{refObjectRotation}°</span>
+                </div>
+              </div>
+            )}
             </div>
           </div>
         );
@@ -1084,14 +1134,16 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
     }
   };
 
-  return (
+  return ReactDOM.createPortal(
     <div style={{
-      display: 'flex', flexDirection: 'column', borderRadius: '24px',
-      overflow: 'hidden',
-      boxShadow: '0 20px 60px rgba(30,81,40,0.15)',
+      position: 'fixed',
+      top: 0, left: 0, right: 0, bottom: 0,
+      zIndex: 9999,
+      display: 'flex', flexDirection: 'column',
       background: '#FFFDF8',
-      width: '100%',
-      boxSizing: 'border-box'
+      boxSizing: 'border-box',
+      transform: (isMounted && !isExiting) ? 'translateY(0)' : 'translateY(-100%)',
+      transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
     }}>
 
       {/* ── Header bar ── */}
@@ -1108,6 +1160,18 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* Tetris Button */}
+          <button type="button" onClick={() => setShowTetris(true)} style={{
+            background: 'linear-gradient(135deg, #FF6B6B, #EE5253)',
+            borderRadius: '10px', padding: '6px 12px',
+            fontSize: '12px', fontWeight: 800, color: 'white',
+            cursor: 'pointer', border: 'none',
+            display: 'flex', alignItems: 'center', gap: '6px',
+            boxShadow: '0 2px 8px rgba(238,82,83,0.3)',
+          }}>
+            🎮 เล่นเกมรอ
+          </button>
+          
           {/* Cost badge */}
           <div style={{
             background: 'linear-gradient(135deg, #FFD700, #FFA000)',
@@ -1120,7 +1184,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
           <button type="button" onClick={handleReset} style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '10px', color: 'white', cursor: 'pointer', padding: '6px 10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
             <RotateCcw size={12} /> รีเซ็ต
           </button>
-          <button type="button" onClick={onCancel} style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '10px', color: 'white', cursor: 'pointer', padding: '6px 12px', fontSize: '12px' }}>
+          <button type="button" onClick={() => triggerExit(onCancel)} style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '10px', color: 'white', cursor: 'pointer', padding: '6px 12px', fontSize: '12px' }}>
             ✕
           </button>
         </div>
@@ -1129,17 +1193,22 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
       {/* Style sheet for responsive split-screen layout */}
       <style>{`
         .dressup-layout {
-          display: flex;
-          flex-direction: column;
+          display: grid;
+          flex: 1;
+          min-height: 0;
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto auto auto;
           width: 100%;
           box-sizing: border-box;
         }
         .dressup-stage {
+          grid-row: 1;
           display: flex;
           justify-content: center;
           align-items: center;
-          min-height: 340px;
-          padding: 24px 16px 0;
+          min-height: 0;
+          min-width: 0;
+          padding: 0;
           background: linear-gradient(180deg, #FFFDF8 0%, #F5F0E8 40%, #EDE4D4 100%);
           position: relative;
           border-bottom: 2px solid rgba(30,81,40,0.06);
@@ -1151,36 +1220,73 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
           height: 340px;
           z-index: 1;
           position: relative;
+          overflow: hidden;
         }
         .dressup-controls {
-          display: flex;
-          flex-direction: column;
-          width: 100%;
-          box-sizing: border-box;
-          background: white;
+          display: contents; /* Let children flow into the grid */
         }
+        /* Mobile layout for children of dressup-controls */
+        .category-ribbon { grid-row: 2; }
+        .items-tray-container { display: contents; }
+        .split-contents { display: contents; }
+        .left-tray-content { grid-row: 3; }
+        .right-properties-content { grid-row: 4; }
+        .receipt-container { grid-row: 5; }
+
         @media (min-width: 900px) {
           .dressup-layout {
-            flex-direction: row;
-            height: calc(100vh - 210px);
+            grid-template-columns: 80px 240px minmax(0, 1fr) 310px;
+            grid-template-rows: 1fr auto;
+            grid-template-areas:
+              "left-ribbon left-tray center right-props"
+              "left-ribbon left-tray center right-receipt";
             min-height: 520px;
+            background: #f5f5f5; /* Background for side panels */
           }
           .dressup-stage {
-            flex: 1.2 1 0;
+            grid-area: center;
             height: 100%;
-            min-height: auto;
-            border-right: 2px solid rgba(30,81,40,0.06);
+            min-height: 0;
+            min-width: 0;
+            border-left: 1px solid rgba(0,0,0,0.1);
+            border-right: 1px solid rgba(0,0,0,0.1);
             border-bottom: none;
-            padding: 24px 16px;
+            padding: 0;
+            background: #ECE5DA; /* Darker middle canvas */
           }
           .dressup-viewer-container {
             height: 100%;
+            width: 100%;
+            overflow: hidden;
           }
-          .dressup-controls {
-            flex: 0.8 1 0;
-            height: 100%;
-            overflow-y: auto;
+          /* Grid placement for children */
+          .category-ribbon { 
+            grid-area: left-ribbon; 
+            border-right: 1px solid rgba(0,0,0,0.05); 
           }
+          .cat-nav-btn { display: none !important; }
+          .cat-list { 
+            flex-direction: column !important; 
+            overflow-y: auto !important; 
+            padding-top: 16px !important;
+            gap: 12px !important;
+          }
+          .category-ribbon button {
+            width: 100%;
+            height: 70px;
+            border-bottom: none !important;
+            border-right: 3px solid transparent;
+            justify-content: center;
+          }
+          .left-tray-content { 
+            grid-area: left-tray; overflow-y: auto; padding: 16px; background: white; border-right: 1px solid rgba(0,0,0,0.05);
+            flex-wrap: wrap !important;
+            align-content: flex-start !important;
+            align-items: flex-start !important;
+            min-height: 0;
+          }
+          .right-properties-content { grid-area: right-props; overflow-y: auto; padding: 16px; background: white; border-left: 1px solid rgba(0,0,0,0.05); align-content: start; min-height: 0; }
+          .receipt-container { grid-area: right-receipt; border-left: 1px solid rgba(0,0,0,0.05); }
         }
       `}</style>
 
@@ -1277,10 +1383,14 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                 baseScale={baseScale}
                 potScale={potScale}
                 referenceObject={referenceObject}
+                refObjectX={refObjectX}
+                refObjectZ={refObjectZ}
+                refObjectRotation={refObjectRotation}
                 showAxes={showAxes}
                 useCustomClayColor={useCustomClayColor}
                 clayColor1={clayColor1}
                 clayColor2={clayColor2}
+                clayGrainLevel={clayGrainLevel}
                 glazeId={glazeId}
                 useCustomGlazeColor={useCustomGlazeColor}
                 customGlazeColor={customGlazeColor}
@@ -1289,11 +1399,18 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                 glazeMetallicLevel={glazeMetallicLevel}
                 finishType={finishType}
                 spinSpeed={spinSpeed}
+                decorations={decorations}
                 equippedDecals={equippedDecals}
                 selectedDecalId={selectedDecalId}
                 onSelectDecal={setSelectedDecalId}
+                onUpdateDecal={updateDecal}
                 engravedText={engravedText}
                 engravingColor={engravingColor}
+                isDrawingMode={isDrawingMode}
+                drawingPaths={drawingPaths}
+                onDrawStroke={handleDrawStroke}
+                brushColor={brushColor}
+                brushSize={brushSize}
               />
             </div>
           )}
@@ -1303,7 +1420,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
         <div className="dressup-controls">
 
           {/* ── Category Ribbon ── */}
-          <div style={{
+          <div className="category-ribbon" style={{
             display: 'flex', alignItems: 'center', gap: '0',
             background: 'linear-gradient(180deg, #FEFBF4, #FFF8EC)',
             padding: '0',
@@ -1312,13 +1429,13 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
             top: 0,
             zIndex: 10,
           }}>
-            <button type="button" onClick={prevCat} style={{
+            <button className="cat-nav-btn" type="button" onClick={prevCat} style={{
               background: 'none', border: 'none', cursor: 'pointer',
               padding: '12px 8px', color: '#8E5431', display: 'flex', alignItems: 'center',
             }}>
               <ChevronLeft size={18} />
             </button>
-            <div style={{
+            <div className="cat-list" style={{
               flex: 1, display: 'flex', gap: '0', overflowX: 'auto',
               scrollbarWidth: 'none',
             }}>
@@ -1348,7 +1465,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                 </button>
               ))}
             </div>
-            <button type="button" onClick={nextCat} style={{
+            <button className="cat-nav-btn" type="button" onClick={nextCat} style={{
               background: 'none', border: 'none', cursor: 'pointer',
               padding: '12px 8px', color: '#8E5431', display: 'flex', alignItems: 'center',
             }}>
@@ -1357,16 +1474,15 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
           </div>
 
           {/* ── Items Tray ── */}
-          <div style={{
-            padding: '16px',
+          <div className="items-tray-container" style={{
+            padding: '0', // moved padding to css grid
             background: 'white',
-            minHeight: '140px',
           }}>
             {renderItems()}
           </div>
 
           {/* ── Receipt / Finish ── */}
-          <div style={{ padding: '12px 16px 16px', background: 'white', borderTop: '1px solid rgba(30,81,40,0.06)' }}>
+          <div className="receipt-container" style={{ padding: '12px 16px 16px', background: 'white', borderTop: '1px solid rgba(30,81,40,0.06)' }}>
             {!showReceipt ? (
               <button type="button" onClick={() => { setShowReceipt(true); setSelectedDecalId(null); }} style={{
                 width: '100%', padding: '14px', borderRadius: '16px', cursor: 'pointer',
@@ -1436,6 +1552,36 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
           </div>
         </div>
       </div>
-    </div>
+      {/* Tetris Modal Overlay */}
+      {showTetris && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+          zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: '24px'
+        }}>
+          <div style={{ position: 'relative', width: '100%', maxWidth: '900px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <button 
+              onClick={() => setShowTetris(false)}
+              style={{ position: 'absolute', top: '-40px', right: '0', background: 'none', border: 'none', color: 'white', fontSize: '16px', cursor: 'pointer', padding: '8px' }}
+            >
+              ✕ ปิดมินิเกม
+            </button>
+            <div style={{ background: 'black', borderRadius: '16px', padding: '24px', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', overflowY: 'auto' }}>
+              <div style={{ color: 'white', textAlign: 'center', marginBottom: '16px', fontSize: '18px', fontWeight: 800 }}>
+                🎮 Tetris พักสายตา
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                  <TetrisGame userPoints={0} onAwardPoints={() => {}} onGameActiveChange={() => {}} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>,
+    document.body
   );
 };

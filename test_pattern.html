@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="c" width="1024" height="200" style="background:#ddd"></canvas>
+<script>
+  const ctx = document.getElementById("c").getContext("2d");
+  const img = new Image();
+  img.src = "public/gold_pattern_no_bg.png";
+  img.onload = () => {
+    ctx.save();
+    const pat = ctx.createPattern(img, "repeat-x");
+    ctx.fillStyle = pat;
+    const y = 40;
+    ctx.translate(0, y);
+    const scale = 100 / img.naturalHeight;
+    ctx.scale(scale, scale);
+    ctx.fillRect(0, 0, 1024 / scale, img.naturalHeight);
+    ctx.restore();
+  };
+</script>
+</body>
+</html>

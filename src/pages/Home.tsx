@@ -156,93 +156,105 @@ export const Home: React.FC<HomeProps> = ({
   return (
     <div className="home-container" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 76px)', overflow: 'hidden' }}>
       
-      {/* Top Bar with Brand and Search */}
-      <header className="top-bar">
-        <div className="brand-wrapper" onClick={() => window.location.reload()}>
-          <div className="brand-logo-small">
-            <img src="/mascot.png" alt="Logo" />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h1 className="brand-name" style={{ lineHeight: 1.15 }}>
-              Pot<span>Phot</span>
-            </h1>
-            <span style={{ fontSize: '9.5px', fontWeight: 800, color: 'var(--gold)', letterSpacing: '0.5px' }}>
-              🏺 โพธารามเครื่องดินเผา • Benjarong Craft
-            </span>
-          </div>
+      {/* 🏞️ Top Hero Picture Banner Section */}
+      <div className="hero-picture-banner">
+        <div className="hero-banner-bg">
+          <img src="/header_banner.png" alt="PotPhot Banner" className="hero-banner-img" />
+          <div className="hero-banner-overlay" />
+          <div className="hero-banner-particles" />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div className="search-container">
-            <div className="search-icon-wrapper">
-              <Search size={20} />
+        <div className="hero-banner-content">
+          {/* Top Bar with Brand and Search */}
+          <header className="top-bar">
+            <div className="brand-wrapper" onClick={() => window.location.reload()}>
+              <div className="brand-logo-small">
+                <img src="/mascot.png" alt="Logo" />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h1 className="brand-name" style={{ lineHeight: 1.15 }}>
+                  Pot<span>Phot</span>
+                </h1>
+                <span style={{ fontSize: '9.5px', fontWeight: 800, color: 'var(--gold)', letterSpacing: '0.5px' }}>
+                  🏺 โพธารามเครื่องดินเผา • Benjarong Craft
+                </span>
+              </div>
             </div>
-            <input
-              type="text"
-              placeholder="ค้นหาร้านกระถางลายมังกร, ต้นไม้, ของแต่งสวน..."
-              className="search-input gamepad-focusable"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
 
-          {onOpenTutorial && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="search-container">
+                <div className="search-icon-wrapper">
+                  <Search size={20} />
+                </div>
+                <input
+                  type="text"
+                  placeholder="ค้นหาร้านกระถางลายมังกร, ต้นไม้, ของแต่งสวน..."
+                  className="search-input gamepad-focusable"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              {onOpenTutorial && (
+                <button
+                  onClick={onOpenTutorial}
+                  className="gamepad-focusable"
+                  title="คู่มือการใช้งานเว็บไซต์"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 14px',
+                    borderRadius: '14px',
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    border: '1px solid var(--gold-light)',
+                    color: 'var(--clay)',
+                    fontWeight: 700,
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                    backdropFilter: 'blur(8px)'
+                  }}
+                >
+                  <BookOpen size={16} />
+                  <span className="hide-mobile">คู่มือ</span>
+                </button>
+              )}
+            </div>
+          </header>
+
+          {/* Categories Horizontal Scroll Chips */}
+          <nav className="categories-container">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                className={`category-chip gamepad-focusable ${selectedCategory === cat.id ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat.id)}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Modern View Switcher (Map vs List Tabs) */}
+          <div className="view-tab-container">
             <button
-              onClick={onOpenTutorial}
-              className="gamepad-focusable"
-              title="คู่มือการใช้งานเว็บไซต์"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '14px',
-                background: 'var(--gold-glow)',
-                border: '1px solid var(--gold-light)',
-                color: 'var(--clay)',
-                fontWeight: 700,
-                fontSize: '13px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
-              }}
+              className={`view-tab-btn gamepad-focusable ${viewMode === 'map' ? 'active' : ''}`}
+              onClick={() => setViewMode('map')}
             >
-              <BookOpen size={16} />
-              <span className="hide-mobile">คู่มือ</span>
+              <MapIcon size={16} />
+              <span>แผนที่แฟนตาซี</span>
             </button>
-          )}
+            <button
+              className={`view-tab-btn gamepad-focusable ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+            >
+              <ListIcon size={16} />
+              <span>รายชื่อร้านค้า ({filteredShops.length})</span>
+            </button>
+          </div>
         </div>
-      </header>
-
-      {/* Categories Horizontal Scroll Chips */}
-      <nav className="categories-container">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            className={`category-chip gamepad-focusable ${selectedCategory === cat.id ? 'active' : ''}`}
-            onClick={() => setSelectedCategory(cat.id)}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </nav>
-
-      {/* Modern View Switcher (Map vs List Tabs) */}
-      <div className="view-tab-container">
-        <button
-          className={`view-tab-btn gamepad-focusable ${viewMode === 'map' ? 'active' : ''}`}
-          onClick={() => setViewMode('map')}
-        >
-          <MapIcon size={16} />
-          <span>แผนที่แฟนตาซี</span>
-        </button>
-        <button
-          className={`view-tab-btn gamepad-focusable ${viewMode === 'list' ? 'active' : ''}`}
-          onClick={() => setViewMode('list')}
-        >
-          <ListIcon size={16} />
-          <span>รายชื่อร้านค้า ({filteredShops.length})</span>
-        </button>
       </div>
 
       {/* Main Viewport Content */}

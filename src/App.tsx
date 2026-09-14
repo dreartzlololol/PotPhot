@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Onboarding } from './pages/Onboarding';
 import { Home } from './pages/Home';
 import { ShopDetail } from './pages/ShopDetail';
@@ -25,9 +25,60 @@ import { FlyingDragonMascot } from './components/FlyingDragonMascot';
 
 import { soundFX } from './utils/audioFX';
 
+const TransitionWrapper = ({ activeKey, direction, children }: any) => {
+  const [renders, setRenders] = useState([{ key: activeKey, element: children }]);
+
+  useEffect(() => {
+    setRenders(prev => {
+      if (prev.length === 1 && prev[0].key === activeKey) {
+        // Prevent unnecessary re-renders with the same child if no key changed
+        return prev;
+      }
+      const exiting = prev.map(p => ({ ...p, isExiting: true, direction }));
+      return [...exiting, { key: activeKey, element: children, direction }];
+    });
+
+    const timer = setTimeout(() => {
+      setRenders(prev => prev.filter(p => p.key === activeKey));
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [activeKey, children, direction]);
+
+  return (
+    <div style={{ flex: 1, position: 'relative', overflowX: 'hidden' }}>
+      {renders.map(r => (
+        <div 
+          key={r.key}
+          className={`page-transition ${r.isExiting ? 'exiting' : 'entering'} ${r.direction}`}
+          style={{ 
+            position: r.isExiting ? 'absolute' : 'relative', 
+            top: 0, left: 0, width: '100%', minHeight: '100%', 
+            zIndex: r.isExiting ? 1 : 2 
+          }}
+        >
+          {r.element}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 function App() {
   const [page, setPage] = useState<'onboarding' | 'home'>('onboarding');
   const [activeTab, setActiveTab] = useState<TabType>('store');
+
+  const tabsOrder = ['store', 'search', 'pot', 'account', 'settings'];
+  const prevTabRef = useRef<TabType>(activeTab);
+  const slideDirectionRef = useRef<'left' | 'right'>('right');
+
+  if (prevTabRef.current !== activeTab) {
+    const prevIndex = tabsOrder.indexOf(prevTabRef.current);
+    const newIndex = tabsOrder.indexOf(activeTab);
+    slideDirectionRef.current = newIndex > prevIndex ? 'right' : 'left';
+    prevTabRef.current = activeTab;
+  }
+
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [favorites, setFavorites] = useState<string[]>([]);
   const [shops, setShops] = useState<Shop[]>(SHOPS_DATA);
@@ -332,10 +383,10 @@ function App() {
       {page === 'onboarding' ? (
         <Onboarding onComplete={() => setPage('home')} />
       ) : (
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
           
           {/* Active Tab Screen render */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <TransitionWrapper activeKey={activeTab} direction={slideDirectionRef.current}>
             {activeTab === 'store' && (
               <Home
                 shops={shops}
@@ -387,7 +438,7 @@ function App() {
                 onUpdateSettings={handleUpdateSettings}
               />
             )}
-          </div>
+          </TransitionWrapper>
 
           {/* Sticky Bottom App Navigation Bar */}
           <BottomNav

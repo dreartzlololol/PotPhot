@@ -465,11 +465,99 @@ button:disabled {
   overflow: hidden;
 }
 
+/* 🏞️ HERO PICTURE BANNER HEADER 🏞️ */
+.hero-picture-banner {
+  position: relative;
+  width: calc(100% - 32px);
+  max-width: 1360px;
+  margin: 12px auto 8px auto;
+  border-radius: 24px;
+  border: 2.5px solid rgba(217, 119, 6, 0.45);
+  box-shadow: 0 14px 40px rgba(17, 42, 27, 0.22), 0 4px 16px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  background: #112A1B;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+  .hero-picture-banner {
+    width: calc(100% - 16px);
+    margin: 8px auto 6px auto;
+    border-radius: 18px;
+  }
+}
+
+.hero-banner-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.hero-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  filter: brightness(0.96) contrast(1.05) saturate(1.1);
+  transform: scale(1.02);
+  transition: transform 10s ease-out;
+}
+
+.hero-picture-banner:hover .hero-banner-img {
+  transform: scale(1.05);
+}
+
+.hero-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 248, 238, 0.84) 0%,
+    rgba(255, 252, 245, 0.68) 55%,
+    rgba(250, 246, 240, 0.94) 100%
+  );
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+body.dark-theme .hero-banner-overlay {
+  background: linear-gradient(
+    180deg,
+    rgba(15, 30, 20, 0.9) 0%,
+    rgba(20, 42, 28, 0.8) 55%,
+    rgba(15, 30, 20, 0.95) 100%
+  );
+}
+
+.hero-banner-particles {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 15% 25%, rgba(245, 158, 11, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 85% 75%, rgba(45, 122, 71, 0.18) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.hero-banner-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .top-bar {
   display: flex;
   gap: 16px;
   align-items: center;
-  padding: 16px 24px;
+  padding: 16px 24px 10px;
   position: relative;
   z-index: 10;
   width: 100%;
@@ -2306,5 +2394,55 @@ body.nav-retracted .tetris-mobile-controls-panel {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
+}
+
+
+
+@keyframes slideInFromRightFull {
+  0% { transform: translateX(100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInFromLeftFull {
+  0% { transform: translateX(-100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+
+.page-transition {
+  animation-duration: 0.35s;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
+  background: rgba(250, 246, 240, 1);
+}
+
+.page-transition.entering.right {
+  animation-name: slideInRight;
+}
+.page-transition.entering.left {
+  animation-name: slideInLeft;
+}
+.page-transition.exiting.right {
+  animation-name: slideOutLeft;
+}
+.page-transition.exiting.left {
+  animation-name: slideOutRight;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideOutLeft {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(-30%); opacity: 0; } /* Slight parallax effect */
+}
+@keyframes slideOutRight {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(30%); opacity: 0; } /* Slight parallax effect */
 }
 

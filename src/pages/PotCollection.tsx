@@ -63,7 +63,7 @@ export const PotCollection: React.FC<PotCollectionProps> = ({
   currentUser,
   onTetrisActiveChange,
 }) => {
-  const [subTab, setSubTab] = useState<'gallery' | 'tetris'>('gallery');
+  const [subTab, setSubTab] = useState<'gallery' | 'tetris' | 'design'>('gallery');
   const [bakedSuccess, setBakedSuccess] = useState(false);
   const [lastCost, setLastCost] = useState<number | null>(null);
   const [orders, setOrders] = useState<PotOrder[]>([]);
@@ -156,6 +156,7 @@ export const PotCollection: React.FC<PotCollectionProps> = ({
     // Show Shop Selection dialog instead of instantly creating mock order
     setDesignedPot(newPot);
     setDesignedCost(cost);
+    setSubTab('gallery');
   };
 
   const submitCustomPotOrder = async (e: React.FormEvent) => {
@@ -253,7 +254,7 @@ export const PotCollection: React.FC<PotCollectionProps> = ({
   const nextLevelPoints = currentLevel * 20;
   const progressPercent = Math.min(100, (userPoints % 20) * 5);
 
-  const isDesigning = subTab === 'gallery' && !bakedSuccess && designedPot === null;
+  const isDesigning = subTab === 'design';
 
   return (
     <div 
@@ -281,10 +282,8 @@ export const PotCollection: React.FC<PotCollectionProps> = ({
           <button 
             className="premium-btn gamepad-focusable"
             onClick={() => {
-              setSubTab('gallery');
-              setTimeout(() => {
-                designerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }, 100);
+              setSubTab('design');
+              setDesignedPot(null);
             }}
             style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '13px' }}
           >
@@ -443,14 +442,14 @@ export const PotCollection: React.FC<PotCollectionProps> = ({
                 </button>
               </div>
             </form>
-          ) : (
+          ) : isDesigning ? (
             <div ref={designerRef}>
               <PotMiniGame
                 onComplete={handleMiniGameComplete}
                 onCancel={() => setSubTab('gallery')}
               />
             </div>
-          )}
+          ) : null}
 
           {/* Active Orders Tracker */}
           <div id="my-pot-orders" style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '8px' }}>
