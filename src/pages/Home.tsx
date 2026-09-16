@@ -398,7 +398,7 @@ export const Home: React.FC<HomeProps> = ({
                         }}
                       >
                         <div className="shop-card-image-box">
-                          <img src={shop.coverImage} alt={shop.name} className="shop-card-img" />
+                          <img src={shop.shopThumbnail || shop.coverImage || 'https://images.unsplash.com/photo-1592150621744-aca64f48394a?auto=format&fit=crop&q=80&w=300'} alt={shop.name} className="shop-card-img" />
                           <span className="shop-card-tag">{shop.categoryTh}</span>
                           <span className="shop-card-distance">{shop.distance}</span>
                         </div>

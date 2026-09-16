@@ -1862,7 +1862,7 @@ body.dark-theme .hero-banner-overlay {
 
 /* Sunlight (Light) / Moonlight (Dark) Mode variables override */
 body.dark-theme {
-  --bg-cream: #09090b; /* Zinc 950 - sleek dark background */
+  --bg-cream: #000000; /* Pitch black */
   --text-dark: #ffffff; /* Pure white for maximum contrast */
   --text-muted: #a1a1aa; /* Zinc 400 */
   --white: #27272a; /* Zinc 800 - lighter grey for inner cards/inputs */
@@ -1876,12 +1876,7 @@ body.dark-theme {
 }
 
 body.dark-theme .fantasy-bg-overlay {
-  background-image: url('/night_view_bg.png');
-  background-size: cover;
-  background-position: center center;
-  background-attachment: fixed;
-  opacity: 0.18;
-  mix-blend-mode: screen;
+  display: none;
 }
 
 /* Invert map colors in dark mode to make a beautiful dark map */

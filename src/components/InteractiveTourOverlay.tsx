@@ -287,7 +287,6 @@ export const InteractiveTourOverlay: React.FC<InteractiveTourOverlayProps> = ({
           ...popoverStyle,
           width: 'calc(100% - 32px)',
           maxWidth: '440px',
-          background: 'rgba(255, 253, 249, 0.98)',
           backdropFilter: 'blur(20px)',
           borderRadius: '28px',
           padding: '24px 22px 20px 22px',

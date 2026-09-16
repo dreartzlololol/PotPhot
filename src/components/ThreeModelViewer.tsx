@@ -5,6 +5,7 @@ import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import type { EquippedDecal, DrawingStroke } from './PotMiniGame';
 
 interface ThreeModelViewerProps {
@@ -244,7 +245,11 @@ function createTextTexture(text: string, color: string): THREE.Texture {
   return texture;
 }
 
-export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
+export interface ThreeModelViewerRef {
+  exportToGLTF: () => void;
+}
+
+export const ThreeModelViewer = React.forwardRef<ThreeModelViewerRef, ThreeModelViewerProps>(({
   fileData,
   fileType,
   shapeId,
@@ -283,7 +288,7 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
   onDrawStroke,
   brushColor = '#D84315',
   brushSize = 4
-}) => {
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Persistent refs to allow updating properties without resetting OrbitControls or renderer
@@ -1370,6 +1375,37 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
     });
   }, [selectedDecalId, equippedDecals]);
 
+  const handleExportGLTF = () => {
+    const exporter = new GLTFExporter();
+    const exportGroup = new THREE.Group();
+    if (modelObjectRef.current) exportGroup.add(modelObjectRef.current.clone());
+    if (decalGroupRef.current) exportGroup.add(decalGroupRef.current.clone());
+
+    exporter.parse(
+      exportGroup,
+      (gltf) => {
+        const blob = new Blob([gltf as ArrayBuffer], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = url;
+        link.download = 'custom_pottery.glb';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      },
+      (error) => {
+        console.error('An error happened during GLTF export:', error);
+      },
+      { binary: true } // binary mode for .glb file format which natively bundles textures
+    );
+  };
+
+  React.useImperativeHandle(ref, () => ({
+    exportToGLTF: handleExportGLTF
+  }));
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* 3D Container element */}
@@ -1459,4 +1495,4 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
       </div>
     </div>
   );
-};
+});

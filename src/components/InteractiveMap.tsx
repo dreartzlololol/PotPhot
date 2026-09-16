@@ -17,16 +17,16 @@ type MapStyleType = 'terracotta' | 'satellite' | 'moonlight';
 
 const TILE_LAYERS: Record<MapStyleType, { url: string; attr: string }> = {
   terracotta: {
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    attr: '&copy; CartoDB Voyager',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attr: '&copy; OpenStreetMap contributors',
   },
   satellite: {
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attr: '&copy; Esri World Imagery',
   },
   moonlight: {
-    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    attr: '&copy; CartoDB Dark Matter',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attr: '&copy; OpenStreetMap contributors',
   },
 };
 
@@ -184,7 +184,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       const isActive = shop.id === activeShopId;
       const marker = L.marker([lat, lng], {
-        icon: createPotIcon(isActive, shop.name, shop.coverImage || shop.shopThumbnail || 'https://images.unsplash.com/photo-1592150621744-aca64f48394a?auto=format&fit=crop&q=80&w=300'),
+        icon: createPotIcon(isActive, shop.name, shop.shopThumbnail || shop.coverImage || 'https://images.unsplash.com/photo-1592150621744-aca64f48394a?auto=format&fit=crop&q=80&w=300'),
         zIndexOffset: isActive ? 1000 : 0,
       }).addTo(map);
 

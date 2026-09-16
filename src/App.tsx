@@ -188,6 +188,7 @@ function App() {
             openStatus: s.openStatus || 'เปิดอยู่ • ปิด 21:00',
             isOpen: s.isOpen,
             phone: s.phone || '',
+            shopThumbnail: s.shopThumbnail,
             coverImage: s.coverImage || s.shopThumbnail || 'https://images.unsplash.com/photo-1493325619176-79116e45187e?auto=format&fit=crop&w=300&q=80',
             videoUrl: s.videoUrl || '/videos/thai_pot_00001.mp4',
             gallery: s.gallery && s.gallery.length > 0 ? s.gallery : [

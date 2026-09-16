@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useHistory } from '../hooks/useHistory';
 import { Flame, ShoppingCart, RotateCcw, ChevronLeft, ChevronRight, UploadCloud, Trash2 } from 'lucide-react';
 import type { CustomPot } from '../pages/PotCollection';
@@ -272,6 +272,8 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
   const [showReceipt, setShowReceipt] = useState(false);
   const [showTetris,  setShowTetris]  = useState(false);
 
+  const viewerRef = useRef<any>(null);
+
   const [isMounted, setIsMounted] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -442,11 +444,11 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
     if (decSpec) {
       if (decSpec.zone === 'rim' || decSpec.zone === 'base') {
         // Keep compat toggling for rim/base
-        setDecorations(prev => {
-          const next = new Set(prev);
+        updateConfig(prev => {
+          const next = new Set(prev.decorations);
           if (next.has(id)) next.delete(id);
           else next.add(id);
-          return next;
+          return { decorations: Array.from(next) };
         });
       } else {
         // Add individual instance for body decals
@@ -1460,6 +1462,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
           ) : (
             <div className="dressup-viewer-container">
               <ThreeModelViewer
+                ref={viewerRef}
                 fileData={custom3DFileData}
                 fileType={custom3DFileType}
                 shapeId={shapeId}
@@ -1486,7 +1489,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                 glazeMetallicLevel={glazeMetallicLevel}
                 finishType={finishType}
                 spinSpeed={spinSpeed}
-                decorations={decorations}
+                decorations={new Set(decorations)}
                 equippedDecals={equippedDecals}
                 selectedDecalId={selectedDecalId}
                 onSelectDecal={setSelectedDecalId}
@@ -1571,16 +1574,29 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
           {/* ── Receipt / Finish ── */}
           <div className="receipt-container" style={{ padding: '12px 16px 16px', background: 'white', borderTop: '1px solid rgba(30,81,40,0.06)' }}>
             {!showReceipt ? (
-              <button type="button" onClick={() => { setShowReceipt(true); setSelectedDecalId(null); }} style={{
-                width: '100%', padding: '14px', borderRadius: '16px', cursor: 'pointer',
-                background: 'linear-gradient(135deg, #8E5431, #CD853F)',
-                border: 'none', color: 'white', fontWeight: 800, fontSize: '15px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                boxShadow: '0 6px 20px rgba(142,84,49,0.4)',
-                transition: 'all 0.3s',
-              }}>
-                <Flame size={18} /> เข้าเตาอบอบเคลือบดินเผา — ฿{totalCost.toLocaleString()} 🔥
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={() => { setShowReceipt(true); setSelectedDecalId(null); }} style={{
+                  flex: 1, padding: '14px', borderRadius: '16px', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #8E5431, #CD853F)',
+                  border: 'none', color: 'white', fontWeight: 800, fontSize: '15px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  boxShadow: '0 6px 20px rgba(142,84,49,0.4)',
+                  transition: 'all 0.3s',
+                }}>
+                  <Flame size={18} /> เข้าเตาอบอบเคลือบดินเผา — ฿{totalCost.toLocaleString()} 🔥
+                </button>
+                <button type="button" onClick={() => viewerRef.current?.exportToGLTF()} style={{
+                  flex: '0 0 auto', padding: '14px', borderRadius: '16px', cursor: 'pointer',
+                  background: 'linear-gradient(135deg, #1E5128, #4E9F3D)',
+                  border: 'none', color: 'white', fontWeight: 800, fontSize: '13px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  boxShadow: '0 6px 20px rgba(30,81,40,0.3)',
+                  transition: 'all 0.3s',
+                  whiteSpace: 'nowrap'
+                }}>
+                  📥 Export to Blender (.glb)
+                </button>
+              </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <input
