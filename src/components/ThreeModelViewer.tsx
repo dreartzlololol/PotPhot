@@ -583,6 +583,40 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
             const r = wFactor * (0.6 + 0.25 * t + 0.15 * Math.sin(t * Math.PI)) * rimScaleAtPoint * scaleAtPoint;
             outerPoints.push(new THREE.Vector2(r, y));
           }
+        } else if (shapeId === 'classic') {
+          const numPoints = 60;
+          for (let i = 0; i <= numPoints; i++) {
+            const t = i / numPoints;
+            const y = t * hFactor;
+            
+            let rBase = 0.55 + 0.3 * t; // Basic conical shape
+            
+            // Lower ridge
+            if (Math.abs(t - 0.35) < 0.02) {
+               rBase += 0.025 * (1 + Math.cos(Math.PI * (t - 0.35) / 0.02)) / 2;
+            }
+            
+            // Upper ridge
+            if (Math.abs(t - 0.72) < 0.02) {
+               rBase += 0.025 * (1 + Math.cos(Math.PI * (t - 0.72) / 0.02)) / 2;
+            }
+            
+            // Top thick rim
+            if (t >= 0.82) {
+               rBase += 0.12; 
+               if (t < 0.85) {
+                   rBase -= 0.12 * Math.pow((0.85 - t)/0.03, 2);
+               }
+               if (t > 0.95) {
+                   rBase -= 0.08 * Math.pow((t - 0.95)/0.05, 2);
+               }
+            }
+
+            const scaleAtPoint = t < 0.4 ? (baseScale + (1.0 - baseScale) * (t / 0.4)) : 1.0;
+            const rimScaleAtPoint = t < 0.82 ? 1.0 : (1.0 + (rimScale - 1.0) * ((t - 0.82) / 0.18));
+            const r = wFactor * rBase * rimScaleAtPoint * scaleAtPoint;
+            outerPoints.push(new THREE.Vector2(r, y));
+          }
         } else { // wide
           for (let i = 0; i <= 20; i++) {
             const t = i / 20;
@@ -635,15 +669,17 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
 
         // Custom UV mapping for outer pot profile so V goes 0.0 -> 1.0 (bottom base -> top rim)
         const uvAttr = latheGeometry.attributes.uv;
-        const numPoints = points.length; // 42 points
+        const totalPoints = points.length; 
+        const outerPtsCount = outerPoints.length;
+        
         for (let i = 0; i <= segments; i++) {
-          for (let j = 0; j < numPoints; j++) {
-            const vertexIndex = i * numPoints + j;
-            if (j >= 1 && j <= 21) {
-              // Outer surface profile points (j=1 is outer bottom base, j=21 is outer top rim)
-              const outerV = (j - 1) / 20.0;
+          for (let j = 0; j < totalPoints; j++) {
+            const vertexIndex = i * totalPoints + j;
+            if (j >= 1 && j <= outerPtsCount) {
+              // Outer surface profile points (j=1 is outer bottom base, j=outerPtsCount is outer top rim)
+              const outerV = (j - 1) / (outerPtsCount - 1);
               uvAttr.setY(vertexIndex, outerV);
-            } else if (j > 21) {
+            } else if (j > outerPtsCount) {
               // Inner wall profile points: map to top margin
               uvAttr.setY(vertexIndex, 1.05);
             } else {
@@ -961,9 +997,23 @@ export const ThreeModelViewer: React.FC<ThreeModelViewerProps> = ({
           const cx = 512 + (dec.x / 100) * 512;
           const cy = 512 - (dec.y / 100) * 440;
           const decSize = 340 * dec.scale;
+          const t_val = Math.max(0, Math.min(1, (1024 - cy) / 1024));
+          let rBase = 1.0;
+          if (shapeId === 'classic') {
+             rBase = 0.55 + 0.3 * t_val;
+          } else if (shapeId === 'tall') {
+             rBase = 0.6 + 0.25 * t_val + 0.15 * Math.sin(t_val * Math.PI);
+          } else if (shapeId === 'wide') {
+             rBase = 0.75 + 0.35 * t_val + 0.1 * Math.sin(t_val * Math.PI);
+          } else {
+             rBase = 0.8 + 0.5 * Math.sin(t_val * Math.PI);
+          }
+          const localWFactor = (potWidth / 160) * 11;
+          const localHFactor = (potHeight / 180) * 26;
+          const physicalCircumference = 2 * Math.PI * rBase * localWFactor;
+          const physicalAspect = physicalCircumference / localHFactor;
+          
           const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : 1.0;
-          const physicalCircumference = Math.PI * potWidth;
-          const physicalAspect = physicalCircumference / potHeight;
           const drawH = decSize;
           const drawW = decSize * aspect;
           const squish = 1 / physicalAspect;

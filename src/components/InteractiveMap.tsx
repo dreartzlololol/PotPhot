@@ -11,7 +11,7 @@ interface InteractiveMapProps {
   pendingOrders?: any[];
 }
 
-const PHOTHARAM_CENTER: [number, number] = [13.685, 99.845];
+const PHOTHARAM_CENTER: [number, number] = [13.665, 99.845];
 
 type MapStyleType = 'terracotta' | 'satellite' | 'moonlight';
 
@@ -80,6 +80,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const markersRef = useRef<{ [key: string]: L.Marker }>({});
   const orderMarkersRef = useRef<L.Marker[]>([]);
+  const userMarkerRef = useRef<L.Marker | null>(null);
 
   const [mapStyle, setMapStyle] = useState<MapStyleType>('terracotta');
   const [showLayerMenu, setShowLayerMenu] = useState<boolean>(false);
@@ -102,10 +103,44 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       tileLayerRef.current = L.tileLayer(initialConfig.url, {
         attribution: initialConfig.attr,
       }).addTo(map);
+
+      // Add user location marker
+      if ('geolocation' in navigator) {
+        const watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords;
+            if (!leafletMapRef.current) return;
+            
+            if (!userMarkerRef.current) {
+              const userIcon = L.divIcon({
+                className: 'user-location-leaflet',
+                html: `
+                  <div style="width: 18px; height: 18px; background: #3B82F6; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(59,130,246,0.6); position: relative;">
+                    <div style="position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; border-radius: 50%; background: rgba(59,130,246,0.4); animation: pulse-ring 2s infinite;"></div>
+                  </div>
+                `,
+                iconSize: [18, 18],
+                iconAnchor: [9, 9],
+              });
+              userMarkerRef.current = L.marker([latitude, longitude], { icon: userIcon, zIndexOffset: 1000 }).addTo(leafletMapRef.current);
+            } else {
+              userMarkerRef.current.setLatLng([latitude, longitude]);
+            }
+          },
+          (err) => console.error('Map Geolocation error:', err),
+          { enableHighAccuracy: true, maximumAge: 60000, timeout: 10000 }
+        );
+        
+        // Save watchId to clear it on unmount
+        (map as any)._userWatchId = watchId;
+      }
     }
 
     return () => {
       if (leafletMapRef.current) {
+        if ('geolocation' in navigator && (leafletMapRef.current as any)._userWatchId) {
+          navigator.geolocation.clearWatch((leafletMapRef.current as any)._userWatchId);
+        }
         leafletMapRef.current.remove();
         leafletMapRef.current = null;
       }

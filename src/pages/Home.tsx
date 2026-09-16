@@ -145,7 +145,7 @@ export const Home: React.FC<HomeProps> = ({
 
   const handleNavigateDirect = (e: React.MouseEvent, shop: Shop) => {
     e.stopPropagation();
-    alert(`กำลังเริ่มระบบนำทางสีเขียวขนาดใหญ่ไปที่ "${shop.name}"\nพิกัด GPS: ${shop.address}\n\nน้องมังกร: เดินทางกันเลยยย! 🚗✨`);
+    alert(`กำลังเริ่มระบบนำทางสีเขียวขนาดใหญ่ไปที่ "${shop.name}"\nระยะห่างจากคุณ: ${shop.distance}\nพิกัด GPS: ${shop.address}\n\nน้องมังกร: เดินทางกันเลยยย! 🚗✨`);
   };
 
   // Currently active shop object
@@ -181,79 +181,80 @@ export const Home: React.FC<HomeProps> = ({
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div className="search-container">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, justifyContent: 'flex-end' }}>
+              <div className="search-container" style={{ flex: 1, maxWidth: '400px' }}>
                 <div className="search-icon-wrapper">
-                  <Search size={20} />
+                  <Search size={18} />
                 </div>
                 <input
                   type="text"
-                  placeholder="ค้นหาร้านกระถางลายมังกร, ต้นไม้, ของแต่งสวน..."
+                  placeholder="ค้นหา..."
                   className="search-input gamepad-focusable"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
 
+              {/* Categories as Icons */}
+              <div style={{ display: 'flex', gap: '4px' }} className="hide-mobile">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.id}
+                    title={cat.label.replace(/ [^ ]+$/, '')} // Remove emoji for tooltip
+                    className={`category-chip gamepad-focusable ${selectedCategory === cat.id ? 'active' : ''}`}
+                    style={{ padding: '0', width: '38px', height: '38px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', margin: 0 }}
+                    onClick={() => setSelectedCategory(cat.id)}
+                  >
+                    {cat.label.split(' ').pop()}
+                  </button>
+                ))}
+              </div>
+
+              {/* View Switcher as Icons */}
+              <div style={{ display: 'flex', gap: '4px', background: 'rgba(255,255,255,0.6)', padding: '4px', borderRadius: '12px', backdropFilter: 'blur(8px)' }}>
+                <button
+                  className={`view-tab-btn gamepad-focusable ${viewMode === 'map' ? 'active' : ''}`}
+                  style={{ padding: '6px', borderRadius: '8px' }}
+                  title="แผนที่"
+                  onClick={() => setViewMode('map')}
+                >
+                  <MapIcon size={18} />
+                </button>
+                <button
+                  className={`view-tab-btn gamepad-focusable ${viewMode === 'list' ? 'active' : ''}`}
+                  style={{ padding: '6px', borderRadius: '8px' }}
+                  title="รายชื่อ"
+                  onClick={() => setViewMode('list')}
+                >
+                  <ListIcon size={18} />
+                </button>
+              </div>
+
               {onOpenTutorial && (
                 <button
                   onClick={onOpenTutorial}
                   className="gamepad-focusable"
-                  title="คู่มือการใช้งานเว็บไซต์"
+                  title="คู่มือ"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 14px',
-                    borderRadius: '14px',
+                    justifyContent: 'center',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '12px',
                     background: 'rgba(255, 255, 255, 0.85)',
                     border: '1px solid var(--gold-light)',
                     color: 'var(--clay)',
-                    fontWeight: 700,
-                    fontSize: '13px',
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                     backdropFilter: 'blur(8px)'
                   }}
                 >
-                  <BookOpen size={16} />
-                  <span className="hide-mobile">คู่มือ</span>
+                  <BookOpen size={18} />
                 </button>
               )}
             </div>
           </header>
-
-          {/* Categories Horizontal Scroll Chips */}
-          <nav className="categories-container">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                className={`category-chip gamepad-focusable ${selectedCategory === cat.id ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat.id)}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </nav>
-
-          {/* Modern View Switcher (Map vs List Tabs) */}
-          <div className="view-tab-container">
-            <button
-              className={`view-tab-btn gamepad-focusable ${viewMode === 'map' ? 'active' : ''}`}
-              onClick={() => setViewMode('map')}
-            >
-              <MapIcon size={16} />
-              <span>แผนที่แฟนตาซี</span>
-            </button>
-            <button
-              className={`view-tab-btn gamepad-focusable ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => setViewMode('list')}
-            >
-              <ListIcon size={16} />
-              <span>รายชื่อร้านค้า ({filteredShops.length})</span>
-            </button>
-          </div>
         </div>
       </div>
 

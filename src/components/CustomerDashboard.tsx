@@ -57,7 +57,7 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 
   const handleNavigateDirect = (e: React.MouseEvent, shop: Shop) => {
     e.stopPropagation();
-    alert(`กำลังเริ่มระบบนำทางไปที่ "${shop.name}"\nพิกัด GPS: ${shop.address}\n\nน้องมังกร: เดินทางดี ๆ นะครับ! 🚗✨`);
+    alert(`กำลังเริ่มระบบนำทางไปที่ "${shop.name}"\nระยะห่างจากคุณ: ${shop.distance}\nพิกัด GPS: ${shop.address}\n\nน้องมังกร: เดินทางดี ๆ นะครับ! 🚗✨`);
   };
 
   const getStatusLabel = (status: string) => {

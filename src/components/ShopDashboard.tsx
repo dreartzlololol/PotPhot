@@ -514,8 +514,21 @@ export const ShopDashboard: React.FC<ShopDashboardProps> = ({ user, onLogout, on
     setTempAddress(user.shopAddress || '');
   };
 
-  const handleMapClick = (loc: {lat: number, lng: number}) => {
+  const handleMapClick = async (loc: {lat: number, lng: number}) => {
     setTempLocation(loc);
+    setTempAddress('กำลังค้นหาที่อยู่...'); // Loading text
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${loc.lat}&lon=${loc.lng}&zoom=18&addressdetails=1&accept-language=th`);
+      const data = await res.json();
+      if (data && data.display_name) {
+        setTempAddress(data.display_name);
+      } else {
+        setTempAddress('');
+      }
+    } catch (err) {
+      console.error(err);
+      setTempAddress('');
+    }
   };
 
   const handleSearchAddress = async () => {
@@ -653,7 +666,7 @@ export const ShopDashboard: React.FC<ShopDashboardProps> = ({ user, onLogout, on
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-dark)' }}>ปักหมุดตำแหน่งร้านบนแผนที่ (คลิกบนแผนที่เพื่อเลือกพิกัด)</label>
-              <MapPicker initialLocation={tempLocation} onLocationSelect={(loc) => setTempLocation(loc)} />
+              <MapPicker initialLocation={tempLocation} onLocationSelect={handleMapClick} />
               {tempLocation && (
                 <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 600, marginTop: '4px' }}>
                   📍 พิกัดที่เลือก: {tempLocation.lat.toFixed(4)}, {tempLocation.lng.toFixed(4)}

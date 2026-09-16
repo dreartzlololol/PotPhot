@@ -22,28 +22,38 @@ import { UserTutorialModal } from './components/UserTutorialModal';
 import { InteractiveTourOverlay } from './components/InteractiveTourOverlay';
 import { ClickSparkleEffect } from './components/ClickSparkleEffect';
 import { FlyingDragonMascot } from './components/FlyingDragonMascot';
+import { calculateDistance } from './utils/geo';
 
 import { soundFX } from './utils/audioFX';
 
 const TransitionWrapper = ({ activeKey, direction, children }: any) => {
-  const [renders, setRenders] = useState([{ key: activeKey, element: children }]);
+  const [renders, setRenders] = useState([{ key: activeKey, element: children, direction }]);
+  const [currentKey, setCurrentKey] = useState(activeKey);
 
+  // Sync props without triggering transitions
   useEffect(() => {
+    if (activeKey === currentKey) {
+      setRenders(prev => prev.map(p => p.key === activeKey ? { ...p, element: children } : p));
+    }
+  }, [children, activeKey, currentKey]);
+
+  // Handle actual transitions
+  useEffect(() => {
+    if (activeKey === currentKey) return;
+
     setRenders(prev => {
-      if (prev.length === 1 && prev[0].key === activeKey) {
-        // Prevent unnecessary re-renders with the same child if no key changed
-        return prev;
-      }
       const exiting = prev.map(p => ({ ...p, isExiting: true, direction }));
       return [...exiting, { key: activeKey, element: children, direction }];
     });
+    
+    setCurrentKey(activeKey);
 
     const timer = setTimeout(() => {
       setRenders(prev => prev.filter(p => p.key === activeKey));
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [activeKey, children, direction]);
+  }, [activeKey, direction, currentKey, children]);
 
   return (
     <div style={{ flex: 1, position: 'relative', overflowX: 'hidden' }}>
@@ -125,6 +135,30 @@ function App() {
     });
   };
 
+  // Geolocation reference
+  const userLocationRef = useRef<{lat: number, lng: number} | null>(null);
+
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      const watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          userLocationRef.current = loc;
+          setShops(prevShops => prevShops.map(s => {
+            if (s.lat && s.lng) {
+              const d = calculateDistance(loc.lat, loc.lng, s.lat, s.lng);
+              return { ...s, distance: `${d.toFixed(1)} กม.` };
+            }
+            return s;
+          }));
+        },
+        (err) => console.error('Geolocation error:', err),
+        { enableHighAccuracy: true, maximumAge: 60000, timeout: 10000 }
+      );
+      return () => navigator.geolocation.clearWatch(watchId);
+    }
+  }, []);
+
   // Load shops from database
   useEffect(() => {
     const fetchDBShops = async () => {
@@ -132,7 +166,14 @@ function App() {
         const res = await fetch('/api/shops');
         if (res.ok) {
           const data = await res.json();
-          const dbShopsMapped: Shop[] = data.shops.map((s: any) => ({
+          const dbShopsMapped: Shop[] = data.shops.map((s: any) => {
+            let distanceStr = s.distance || '2.0 กม.';
+            if (userLocationRef.current && s.lat && s.lng) {
+              const d = calculateDistance(userLocationRef.current.lat, userLocationRef.current.lng, s.lat, s.lng);
+              distanceStr = `${d.toFixed(1)} กม.`;
+            }
+
+            return {
             id: s.id,
             name: s.shopName,
             category: s.category || 'now',
@@ -140,7 +181,7 @@ function App() {
             description: s.shopDescription || 'ไม่มีคำอธิบายร้านค้า',
             rating: s.rating || 5.0,
             reviewCount: s.reviewCount || 0,
-            distance: s.distance || '2.0 กม.',
+            distance: distanceStr,
             lat: s.lat,
             lng: s.lng,
             address: s.shopAddress || '',
@@ -154,7 +195,8 @@ function App() {
               'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=500&auto=format&fit=crop&q=60'
             ],
             reviews: []
-          }));
+          };
+          });
           setShops(dbShopsMapped);
         }
       } catch (err) {

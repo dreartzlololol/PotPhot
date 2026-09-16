@@ -36,12 +36,17 @@ export const Settings: React.FC<SettingsProps> = ({
   settings, 
   onUpdateSettings 
 }) => {
-  const [sunlightMode, setSunlightMode] = useState(true);
+  const [sunlightMode, setSunlightMode] = useState(() => !document.body.classList.contains('dark-theme'));
 
   // Toggle Dark Mode (Moonlight) vs Light Mode (Sunlight)
   const handleThemeToggle = () => {
-    setSunlightMode(!sunlightMode);
-    document.body.classList.toggle('dark-theme');
+    const isDark = !sunlightMode;
+    setSunlightMode(isDark);
+    if (isDark) {
+      document.body.classList.remove('dark-theme');
+    } else {
+      document.body.classList.add('dark-theme');
+    }
   };
 
   const handlePerformanceModeToggle = (enabled: boolean) => {

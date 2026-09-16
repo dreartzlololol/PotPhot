@@ -284,7 +284,7 @@ export const ShopDetail: React.FC<ShopDetailProps> = ({
   };
 
   const handleNavigate = () => {
-    alert(`กำลังนำทางไปที่ "${shop.name}"\nพิกัด GPS: ${shop.address}\n\nน้องมังกรขอให้เดินทางปลอดภัยนะคร้าบ! 🚗🌱`);
+    alert(`กำลังนำทางไปที่ "${shop.name}"\nระยะห่างจากคุณ: ${shop.distance}\nพิกัด GPS: ${shop.address}\n\nน้องมังกรขอให้เดินทางปลอดภัยนะคร้าบ! 🚗🌱`);
   };
 
   return (

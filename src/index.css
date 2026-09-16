@@ -468,12 +468,12 @@ button:disabled {
 /* 🏞️ HERO PICTURE BANNER HEADER 🏞️ */
 .hero-picture-banner {
   position: relative;
-  width: calc(100% - 32px);
+  width: calc(100% - 24px);
   max-width: 1360px;
-  margin: 12px auto 8px auto;
-  border-radius: 24px;
-  border: 2.5px solid rgba(217, 119, 6, 0.45);
-  box-shadow: 0 14px 40px rgba(17, 42, 27, 0.22), 0 4px 16px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  margin: 6px auto 4px auto;
+  border-radius: 20px;
+  border: 2px solid rgba(217, 119, 6, 0.45);
+  box-shadow: 0 10px 30px rgba(17, 42, 27, 0.22), 0 4px 12px rgba(0, 0, 0, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -555,9 +555,9 @@ body.dark-theme .hero-banner-overlay {
 
 .top-bar {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
-  padding: 16px 24px 10px;
+  padding: 10px 20px 6px;
   position: relative;
   z-index: 10;
   width: 100%;
@@ -573,9 +573,9 @@ body.dark-theme .hero-banner-overlay {
 }
 
 .brand-logo-small {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #FFFFFF 0%, #FFF8EC 100%);
   padding: 4px;
   border: 1.5px solid var(--gold-light);
@@ -597,7 +597,7 @@ body.dark-theme .hero-banner-overlay {
 }
 
 .brand-name {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--primary);
   display: flex;
@@ -617,9 +617,9 @@ body.dark-theme .hero-banner-overlay {
 
 .search-input {
   width: 100%;
-  height: 50px;
-  padding: 12px 20px 12px 50px;
-  border-radius: 25px;
+  height: 42px;
+  padding: 8px 16px 8px 42px;
+  border-radius: 21px;
   border: 2px solid transparent;
   background: var(--white);
   box-shadow: var(--card-shadow);
@@ -636,7 +636,7 @@ body.dark-theme .hero-banner-overlay {
 
 .search-icon-wrapper {
   position: absolute;
-  left: 18px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--primary-light);
@@ -646,8 +646,8 @@ body.dark-theme .hero-banner-overlay {
 
 .categories-container {
   display: flex;
-  gap: 10px;
-  padding: 8px 24px;
+  gap: 8px;
+  padding: 4px 20px;
   overflow-x: auto;
   white-space: nowrap;
   position: relative;
@@ -663,13 +663,13 @@ body.dark-theme .hero-banner-overlay {
 }
 
 .category-chip {
-  padding: 8px 18px;
-  border-radius: 20px;
+  padding: 6px 14px;
+  border-radius: 16px;
   background: var(--white);
   border: 1px solid rgba(30, 81, 40, 0.1);
   color: var(--text-dark);
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
@@ -693,8 +693,8 @@ body.dark-theme .hero-banner-overlay {
 .map-panel {
   flex: 1;
   position: relative;
-  margin: 16px 24px;
-  border-radius: 32px;
+  margin: 8px 16px 12px 16px;
+  border-radius: 24px;
   overflow: hidden;
   box-shadow: var(--premium-shadow);
   border: 3px solid rgba(255,255,255,0.7);
@@ -1641,21 +1641,21 @@ body.dark-theme .hero-banner-overlay {
   display: flex;
   justify-content: center;
   gap: 8px;
-  padding: 6px;
-  border-radius: 20px;
+  padding: 4px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(30, 81, 40, 0.1);
   backdrop-filter: blur(8px);
-  margin: 0 auto 12px;
+  margin: 0 auto 8px;
   width: fit-content;
   z-index: 10;
 }
 
 .view-tab-btn {
-  padding: 8px 20px;
-  border-radius: 14px;
+  padding: 6px 16px;
+  border-radius: 12px;
   border: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -1862,17 +1862,39 @@ body.dark-theme .hero-banner-overlay {
 
 /* Sunlight (Light) / Moonlight (Dark) Mode variables override */
 body.dark-theme {
-  --bg-cream: #121813; /* dark charcoal-green forest ground */
-  --text-dark: #E8F5E9; /* light green-gold readable texts */
-  --text-muted: #889B8C;
-  --white: #1C241E; /* dark green box cards */
-  --card-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-  --premium-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(244, 180, 26, 0.05);
+  --bg-cream: #09090b; /* Zinc 950 - sleek dark background */
+  --text-dark: #ffffff; /* Pure white for maximum contrast */
+  --text-muted: #a1a1aa; /* Zinc 400 */
+  --white: #27272a; /* Zinc 800 - lighter grey for inner cards/inputs */
+  --primary: #4ade80; /* Bright neon green */
+  --primary-light: #86efac; /* Lighter neon green */
+  --primary-glow: rgba(74, 222, 128, 0.25);
+  --primary-glow-strong: rgba(74, 222, 128, 0.45);
+  --card-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  --premium-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(244, 180, 26, 0.08);
+  background-color: var(--bg-cream); /* Force body background update */
+}
+
+body.dark-theme .fantasy-bg-overlay {
+  background-image: url('/night_view_bg.png');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  opacity: 0.18;
+  mix-blend-mode: screen;
+}
+
+/* Invert map colors in dark mode to make a beautiful dark map */
+body.dark-theme .leaflet-layer,
+body.dark-theme .leaflet-control-zoom-in,
+body.dark-theme .leaflet-control-zoom-out,
+body.dark-theme .leaflet-control-attribution {
+  filter: invert(100%) hue-rotate(180deg) brightness(130%) contrast(105%);
 }
 
 body.dark-theme .glass-panel {
-  background: rgba(28, 36, 30, 0.85);
-  border-color: rgba(78, 159, 61, 0.15);
+  background: rgba(39, 39, 42, 0.85); /* Zinc 800 - lighter dark grey */
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 body.dark-theme .category-chip {
@@ -2413,7 +2435,7 @@ body.nav-retracted .tetris-mobile-controls-panel {
   animation-duration: 0.35s;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
-  background: rgba(250, 246, 240, 1);
+  background: var(--bg-cream);
 }
 
 .page-transition.entering.right {
@@ -2446,3 +2468,4 @@ body.nav-retracted .tetris-mobile-controls-panel {
   to { transform: translateX(30%); opacity: 0; } /* Slight parallax effect */
 }
 
+@keyframes pulse-ring { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
