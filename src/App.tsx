@@ -16,6 +16,7 @@ import { Settings } from './pages/Settings';
 import { SHOPS_DATA } from './data/shops';
 import type { Shop, Review } from './data/shops';
 import { GamepadManager } from './components/GamepadManager';
+import { GamepadCursor } from './components/GamepadCursor';
 import { BackgroundMusic } from './components/BackgroundMusic';
 import type { UserProfile } from './types/auth';
 import { UserTutorialModal } from './components/UserTutorialModal';
@@ -408,6 +409,8 @@ function App() {
 
       {/* Background cinematic particles (Leaves & Sun dust) */}
       {appSettings.showLeafParticles && <LeafParticles />}
+
+      <GamepadCursor />
 
       {/* Xbox 360 Gamepad Input Manager */}
       <GamepadManager

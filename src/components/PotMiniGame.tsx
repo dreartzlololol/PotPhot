@@ -11,15 +11,15 @@ import ReactDOM from 'react-dom';
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const SHAPES = [
-  { id: 'classic',  label: 'ทรงคลาสสิค', emoji: '🪴', desc: '฿70+',  borderRadius: '20% 20% 40% 40% / 10% 10% 30% 30%', rimScale: 1.0 },
+  { id: 'classic',  label: 'ทรงคลาสสิค', emoji: '🌱', desc: '฿70+',  borderRadius: '20% 20% 40% 40% / 10% 10% 30% 30%', rimScale: 1.0 },
   { id: 'round',    label: 'ทรงกลมอ้วน',   emoji: '🏺', desc: '฿80+',  borderRadius: '50% 50% 44% 44% / 44% 44% 50% 50%', rimScale: 1.0 },
   { id: 'tall',     label: 'ทรงสูงเพรียว',  emoji: '🌵', desc: '฿90+',  borderRadius: '15% 15% 35% 35% / 10% 10% 40% 40%', rimScale: 1.0 },
-  { id: 'wide',     label: 'ทรงปากกว้าง',  emoji: '🪣', desc: '฿100+', borderRadius: '48% 48% 38% 38% / 26% 26% 48% 48%', rimScale: 1.2 },
+  { id: 'wide',     label: 'ทรงปากกว้าง',  emoji: '🍯', desc: '฿100+', borderRadius: '48% 48% 38% 38% / 26% 26% 48% 48%', rimScale: 1.2 },
   { id: 'octagon',  label: 'ทรงแปดเหลี่ยม', emoji: '💎', desc: '฿150+', borderRadius: '20%',                                rimScale: 0.9 },
 ];
 
 const CLAY_TYPES = [
-  { id: 'terracotta', label: 'ดินเผา', emoji: '🟤', baseCost: 80,  gradient: 'radial-gradient(circle at 28% 28%, #E8A070, #CD853F 50%, #8B5A2B)' },
+  { id: 'terracotta', label: 'ดินเผา', emoji: '🧱', baseCost: 80,  gradient: 'radial-gradient(circle at 28% 28%, #E8A070, #CD853F 50%, #8B5A2B)' },
   { id: 'stoneware',  label: 'ดินหิน', emoji: '⚫', baseCost: 150, gradient: 'radial-gradient(circle at 28% 28%, #9E9E9E, #616161 50%, #37474F)' },
   { id: 'porcelain',  label: 'กระเบื้อง', emoji: '⚪', baseCost: 250, gradient: 'radial-gradient(circle at 28% 28%, #FAFAFA, #E0E0E0 50%, #BDBDBD)' },
   { id: 'raku',       label: 'ดินราคุ',  emoji: '🔶', baseCost: 320, gradient: 'radial-gradient(circle at 28% 28%, #FFB74D, #E65100 50%, #8D2200)' },
@@ -42,10 +42,10 @@ const DECORATIONS = [
   { id: 'rim-dots',     zone: 'rim',  emoji: '⚪', label: 'ขอบจุดมุก',    cost: 60 },
   { id: 'rim-wave',     zone: 'rim',  emoji: '〰️', label: 'ขอบคลื่น',     cost: 50 },
   { id: 'rim-meander',  zone: 'rim',  emoji: '🏛️', label: 'ขอบลายกรีก',   cost: 70 },
-  { id: 'rim-bead-gold',zone: 'rim',  emoji: '🟡', label: 'ขอบลูกปัดทอง', cost: 90 },
+  { id: 'rim-bead-gold',zone: 'rim',  emoji: '🌕', label: 'ขอบลูกปัดทอง', cost: 90 },
   // Body decals (no longer emojis, rendered as high-end vector graphics)
   { id: 'body-dragon',  zone: 'body', emoji: '🐉', label: 'มังกรโบราณ',   cost: 200 },
-  { id: 'body-lotus',   zone: 'body', emoji: '🪷', label: 'สัตตบงกช',     cost: 120 },
+  { id: 'body-lotus',   zone: 'body', emoji: '🌺', label: 'สัตตบงกช',     cost: 120 },
   { id: 'body-phoenix', zone: 'body', emoji: '🦅', label: 'หงส์เหิน',       cost: 180 },
   { id: 'body-bamboo',  zone: 'body', emoji: '🎋', label: 'กอไผ่คราม',     cost: 90 },
   { id: 'body-star',    zone: 'body', emoji: '⭐', label: 'ประจำยามทอง',  cost: 70 },
@@ -594,7 +594,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                 )}
                 <UploadCloud size={24} style={{ color: '#8E5431' }} />
                 <span style={{ fontSize: '10px', fontWeight: 700, color: '#1E5128', lineHeight: 1.2 }}>อัปโหลด 3D</span>
-                <span style={{ fontSize: '8px', color: 'var(--text-muted)' }}>.stl / .obj</span>
+                <span style={{ fontSize: '8px', color: '#64748B' }}>.stl / .obj</span>
                 <input 
                   type="file" 
                   accept=".stl,.obj" 
@@ -617,19 +617,19 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
               {/* Real-time Dimension Summary Cards */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                 <div style={{ background: 'white', padding: '8px 10px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>เส้นผ่านศูนย์กลาง</div>
+                  <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>เส้นผ่านศูนย์กลาง</div>
                   <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary)', marginTop: '2px' }}>
                     {realDiameterInch}" ({realDiameterCm} ซม.)
                   </div>
                 </div>
                 <div style={{ background: 'white', padding: '8px 10px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>ความสูงกระถาง</div>
+                  <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>ความสูงกระถาง</div>
                   <div style={{ fontSize: '12px', fontWeight: 800, color: '#D84315', marginTop: '2px' }}>
                     {realHeightInch}" ({realHeightCm} ซม.)
                   </div>
                 </div>
                 <div style={{ background: 'white', padding: '8px 10px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)', textAlign: 'center' }}>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>ปริมาตรดินประมาณ</div>
+                  <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 600 }}>ปริมาตรดินประมาณ</div>
                   <div style={{ fontSize: '12px', fontWeight: 800, color: '#2E7D32', marginTop: '2px' }}>
                     ~{estimatedVolumeLiters} ลิตร
                   </div>
@@ -638,7 +638,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
 
               {/* Quick Scale Presets */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dark)' }}>🔍 เลือกสเกลมาตรฐาน (Scale Presets):</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#1E293B' }}>🔍 เลือกสเกลมาตรฐาน (Scale Presets):</span>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {[
                     { label: 'S (0.8x)', scale: 0.8 },
@@ -659,7 +659,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                         borderRadius: '8px',
                         border: potScale === p.scale ? '2px solid var(--primary)' : '1px solid rgba(0,0,0,0.1)',
                         background: potScale === p.scale ? 'var(--primary-glow)' : 'white',
-                        color: potScale === p.scale ? 'var(--primary)' : 'var(--text-dark)',
+                        color: potScale === p.scale ? 'var(--primary)' : '#1E293B',
                         cursor: 'pointer',
                         transition: 'all 0.15s'
                       }}
@@ -672,7 +672,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
 
               {/* Real-Life Scale Reference Object Selector */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dark)' }}>📏 วางวัตถุเทียบขนาดในชีวิตจริง (Real-Life Scale Comparison):</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#1E293B' }}>📏 วางวัตถุเทียบขนาดในชีวิตจริง (Real-Life Scale Comparison):</span>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
                   {[
                     { id: 'none', label: '🚫 ไม่แสดง', sub: 'ซ่อนวัตถุ' },
@@ -689,7 +689,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                         borderRadius: '10px',
                         border: referenceObject === ref.id ? '2px solid #FF9800' : '1px solid rgba(0,0,0,0.1)',
                         background: referenceObject === ref.id ? 'rgba(255,152,0,0.15)' : 'white',
-                        color: referenceObject === ref.id ? '#E65100' : 'var(--text-dark)',
+                        color: referenceObject === ref.id ? '#E65100' : '#1E293B',
                         cursor: 'pointer',
                         textAlign: 'center',
                         transition: 'all 0.15s'
@@ -726,7 +726,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
 
                     {/* X Position Offset Slider */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '10px', width: '85px', color: 'var(--text-dark)', fontWeight: 600 }}>↔️ ซ้าย-ขวา (X):</span>
+                      <span style={{ fontSize: '10px', width: '85px', color: '#1E293B', fontWeight: 600 }}>↔️ ซ้าย-ขวา (X):</span>
                       <input 
                         type="range" min="-40" max="40" value={refObjectX} 
                         onChange={e => setRefObjectX(Number(e.target.value))} 
@@ -737,7 +737,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
 
                     {/* Z Position Offset Slider */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '10px', width: '85px', color: 'var(--text-dark)', fontWeight: 600 }}>↕️ หน้า-หลัง (Z):</span>
+                      <span style={{ fontSize: '10px', width: '85px', color: '#1E293B', fontWeight: 600 }}>↕️ หน้า-หลัง (Z):</span>
                       <input 
                         type="range" min="-40" max="40" value={refObjectZ} 
                         onChange={e => setRefObjectZ(Number(e.target.value))} 
@@ -748,7 +748,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
 
                     {/* Rotation Slider */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '10px', width: '85px', color: 'var(--text-dark)', fontWeight: 600 }}>🔄 หมุนวัตถุ:</span>
+                      <span style={{ fontSize: '10px', width: '85px', color: '#1E293B', fontWeight: 600 }}>🔄 หมุนวัตถุ:</span>
                       <input 
                         type="range" min="-180" max="180" value={refObjectRotation} 
                         onChange={e => setRefObjectRotation(Number(e.target.value))} 
@@ -762,7 +762,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
 
               {/* XYZ Axes Helper Toggle */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', background: 'white', padding: '8px 12px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-dark)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span>📍 เส้นแกนพิกัด 3D (XYZ Axes & Grid):</span>
                   <span style={{ fontSize: '10px', color: '#FF3344', fontWeight: 800 }}>X (แดง)</span>
                   <span style={{ fontSize: '10px', color: '#33CC44', fontWeight: 800 }}>Y (สูง)</span>
@@ -778,7 +778,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                     borderRadius: '8px',
                     border: showAxes ? '1.5px solid #4E9F3D' : '1px solid rgba(0,0,0,0.15)',
                     background: showAxes ? 'var(--primary-glow)' : '#F5F5F5',
-                    color: showAxes ? 'var(--primary)' : 'var(--text-muted)',
+                    color: showAxes ? 'var(--primary)' : '#64748B',
                     cursor: 'pointer'
                   }}
                 >
@@ -789,31 +789,31 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
               {/* Dimension & Sculpting Sliders */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '11px', width: '90px', color: 'var(--text-dark)', fontWeight: 600 }}>🔍 อัตราสเกลรวม:</span>
+                  <span style={{ fontSize: '11px', width: '90px', color: '#1E293B', fontWeight: 600 }}>🔍 อัตราสเกลรวม:</span>
                   <input type="range" min="50" max="200" step="5" value={potScale * 100} onChange={e => updateConfig({ potScale: Number(e.target.value) / 100 })} style={{ flex: 1 }} />
                   <span style={{ fontSize: '11px', width: '45px', textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>{potScale.toFixed(2)}x</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '11px', width: '90px', color: 'var(--text-dark)', fontWeight: 600 }}>📏 กว้าง/เส้นผ่านศูนย์กลาง:</span>
+                  <span style={{ fontSize: '11px', width: '90px', color: '#1E293B', fontWeight: 600 }}>📏 กว้าง/เส้นผ่านศูนย์กลาง:</span>
                   <input type="range" min="100" max="220" value={potWidth} onChange={e => updateConfig({ potWidth: Number(e.target.value) })} style={{ flex: 1 }} />
                   <span style={{ fontSize: '11px', width: '45px', textAlign: 'right' }}>{potWidth}px</span>
                 </div>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '11px', width: '90px', color: 'var(--text-dark)', fontWeight: 600 }}>📐 ความสูงกระถาง:</span>
+                  <span style={{ fontSize: '11px', width: '90px', color: '#1E293B', fontWeight: 600 }}>📐 ความสูงกระถาง:</span>
                   <input type="range" min="100" max="260" value={potHeight} onChange={e => updateConfig({ potHeight: Number(e.target.value) })} style={{ flex: 1 }} />
                   <span style={{ fontSize: '11px', width: '45px', textAlign: 'right' }}>{potHeight}px</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '11px', width: '90px', color: 'var(--text-dark)', fontWeight: 600 }}>⭕ ขนาดขอบปาก:</span>
+                  <span style={{ fontSize: '11px', width: '90px', color: '#1E293B', fontWeight: 600 }}>⭕ ขนาดขอบปาก:</span>
                   <input type="range" min="70" max="140" value={rimScale * 100} onChange={e => updateConfig({ rimScale: Number(e.target.value) / 100 })} style={{ flex: 1 }} />
                   <span style={{ fontSize: '11px', width: '45px', textAlign: 'right' }}>{(rimScale * 100).toFixed(0)}%</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '11px', width: '90px', color: 'var(--text-dark)', fontWeight: 600 }}>🪵 ขนาดกว้างฐาน:</span>
+                  <span style={{ fontSize: '11px', width: '90px', color: '#1E293B', fontWeight: 600 }}>🪵 ขนาดกว้างฐาน:</span>
                   <input type="range" min="50" max="150" value={baseScale * 100} onChange={e => updateConfig({ baseScale: Number(e.target.value) / 100 })} style={{ flex: 1 }} />
                   <span style={{ fontSize: '11px', width: '45px', textAlign: 'right' }}>{(baseScale * 100).toFixed(0)}%</span>
                 </div>
@@ -854,14 +854,14 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
               {useCustomClayColor && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>สีส่วนบน:</span>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>สีส่วนบน:</span>
                     <input 
                       type="color" 
                       value={clayColor1} 
                       onChange={e => updateConfig({ clayColor1: e.target.value })} 
                       style={{ border: 'none', background: 'transparent', width: '45px', height: '30px', cursor: 'pointer' }}
                     />
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>สีส่วนฐาน:</span>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>สีส่วนฐาน:</span>
                     <input 
                       type="color" 
                       value={clayColor2} 
@@ -872,7 +872,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                   
                   {/* Texture Grain Slider */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '11px', width: '80px', color: 'var(--text-dark)', fontWeight: 600 }}>ความขรุขระ (Grain):</span>
+                    <span style={{ fontSize: '11px', width: '80px', color: '#1E293B', fontWeight: 600 }}>ความขรุขระ (Grain):</span>
                     <input 
                       type="range" min="0" max="100" 
                       value={clayGrainLevel} 
@@ -921,14 +921,14 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
               {useCustomGlazeColor && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>สีน้ำยาเคลือบ:</span>
+                    <span style={{ fontSize: '11px', color: '#64748B' }}>สีน้ำยาเคลือบ:</span>
                     <input 
                       type="color" 
                       value={customGlazeColor} 
                       onChange={e => updateConfig({ customGlazeColor: e.target.value })} 
                       style={{ border: 'none', background: 'transparent', width: '45px', height: '30px', cursor: 'pointer' }}
                     />
-                    <span style={{ fontSize: '11px', width: '80px', color: 'var(--text-dark)', fontWeight: 600 }}>ความโปร่งแสง:</span>
+                    <span style={{ fontSize: '11px', width: '80px', color: '#1E293B', fontWeight: 600 }}>ความโปร่งแสง:</span>
                     <input 
                       type="range" min="10" max="90" 
                       value={glazeOpacity} 
@@ -939,7 +939,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '11px', width: '85px', color: 'var(--text-dark)', fontWeight: 600 }}>ความเงามัน:</span>
+                    <span style={{ fontSize: '11px', width: '85px', color: '#1E293B', fontWeight: 600 }}>ความเงามัน:</span>
                     <input 
                       type="range" min="0" max="100" 
                       value={glazeGlossyLevel} 
@@ -950,7 +950,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '11px', width: '85px', color: 'var(--text-dark)', fontWeight: 600 }}>สะท้อนโลหะ (Metallic):</span>
+                    <span style={{ fontSize: '11px', width: '85px', color: '#1E293B', fontWeight: 600 }}>สะท้อนโลหะ (Metallic):</span>
                     <input 
                       type="range" min="0" max="100" 
                       value={glazeMetallicLevel} 
@@ -1027,7 +1027,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                 {isDrawingMode && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.7)', padding: '10px', borderRadius: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>สีพู่กัน:</span>
+                      <span style={{ fontSize: '10px', color: '#64748B' }}>สีพู่กัน:</span>
                       <input 
                         type="color" 
                         value={brushColor} 
@@ -1036,7 +1036,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                       />
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '10px', width: '60px', color: 'var(--text-muted)' }}>ขนาดหัวแปรง:</span>
+                      <span style={{ fontSize: '10px', width: '60px', color: '#64748B' }}>ขนาดหัวแปรง:</span>
                       <input 
                         type="range" min="1" max="20" 
                         value={brushSize} 
@@ -1082,31 +1082,31 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '10px', width: '70px', color: 'var(--text-muted)' }}>แนวนอน (X):</span>
+                      <span style={{ fontSize: '10px', width: '70px', color: '#64748B' }}>แนวนอน (X):</span>
                       <input type="range" min="-80" max="80" value={selectedDecal.x} onChange={e => updateSelectedDecalProperty(selectedDecal.id, 'x', Number(e.target.value))} style={{ flex: 1 }} />
                       <span style={{ fontSize: '10px', width: '30px', textAlign: 'right' }}>{selectedDecal.x}px</span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '10px', width: '70px', color: 'var(--text-muted)' }}>แนวตั้ง (Y):</span>
+                      <span style={{ fontSize: '10px', width: '70px', color: '#64748B' }}>แนวตั้ง (Y):</span>
                       <input type="range" min="-100" max="100" value={selectedDecal.y} onChange={e => updateSelectedDecalProperty(selectedDecal.id, 'y', Number(e.target.value))} style={{ flex: 1 }} />
                       <span style={{ fontSize: '10px', width: '30px', textAlign: 'right' }}>{selectedDecal.y}px</span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '10px', width: '70px', color: 'var(--text-muted)' }}>ขนาดลาย:</span>
+                      <span style={{ fontSize: '10px', width: '70px', color: '#64748B' }}>ขนาดลาย:</span>
                       <input type="range" min="40" max="250" value={selectedDecal.scale * 100} onChange={e => updateSelectedDecalProperty(selectedDecal.id, 'scale', Number(e.target.value) / 100)} style={{ flex: 1 }} />
                       <span style={{ fontSize: '10px', width: '30px', textAlign: 'right' }}>{(selectedDecal.scale * 100).toFixed(0)}%</span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '10px', width: '70px', color: 'var(--text-muted)' }}>การหมุน:</span>
+                      <span style={{ fontSize: '10px', width: '70px', color: '#64748B' }}>การหมุน:</span>
                       <input type="range" min="-180" max="180" value={selectedDecal.rotation} onChange={e => updateSelectedDecalProperty(selectedDecal.id, 'rotation', Number(e.target.value))} style={{ flex: 1 }} />
                       <span style={{ fontSize: '10px', width: '30px', textAlign: 'right' }}>{selectedDecal.rotation}°</span>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0', fontStyle: 'italic' }}>
+                  <div style={{ fontSize: '11px', color: '#64748B', textAlign: 'center', padding: '10px 0', fontStyle: 'italic' }}>
                     👆 แตะรูปสติ๊กเกอร์ลายบนตัวกระถาง หรือคลิกลากขยับจัดตำแหน่ง เลื่อนขนาด หมุนลายแยกชิ้นตามใจชอบได้เลย!
                   </div>
                 )}
@@ -1118,7 +1118,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
       case 'effects':
         return (
           <div className="split-contents" style={{ display: 'contents' }}>
-            <div className="left-tray-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div className="left-tray-content" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', textAlign: 'center', color: '#64748B' }}>
               <div style={{ fontSize: '48px', opacity: 0.5 }}>💫</div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--primary)' }}>เอฟเฟกต์การหมุน</div>
               <div style={{ fontSize: '12px', padding: '0 20px', lineHeight: 1.6 }}>
@@ -1130,7 +1130,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
             
             {/* Clay Finish */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-dark)' }}>เนื้อผิวเคลือบ (Finish Texture):</span>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#1E293B' }}>เนื้อผิวเคลือบ (Finish Texture):</span>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {([
                   { id: 'matte', label: 'ด้านธรรมชาติ (Matte)' },
@@ -1145,7 +1145,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
                       flex: 1, padding: '8px', fontSize: '11px', fontWeight: 700, borderRadius: '8px',
                       border: finishType === t.id ? '2px solid var(--primary)' : '1px solid rgba(0,0,0,0.1)',
                       background: finishType === t.id ? 'rgba(30,81,40,0.05)' : 'white',
-                      color: finishType === t.id ? 'var(--primary)' : 'var(--text-muted)',
+                      color: finishType === t.id ? 'var(--primary)' : '#64748B',
                       cursor: 'pointer'
                     }}
                   >
@@ -1157,7 +1157,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
 
             {/* Turntable Spin Speed */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '10px' }}>
-              <span style={{ fontSize: '11px', width: '120px', fontWeight: 600, color: 'var(--text-dark)' }}>ความเร็วหมุนแท่น:</span>
+              <span style={{ fontSize: '11px', width: '120px', fontWeight: 600, color: '#1E293B' }}>ความเร็วหมุนแท่น:</span>
               <input 
                 type="range" min="0" max="30" step="1"
                 value={30 - spinSpeed} 
@@ -1175,19 +1175,19 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
             {/* Reference Object Position & Rotation */}
             {referenceObject !== 'none' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '10px' }}>
-                <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-dark)' }}>ปรับตำแหน่งวัตถุอ้างอิงขนาด:</div>
+                <div style={{ fontSize: '11px', fontWeight: 600, color: '#1E293B' }}>ปรับตำแหน่งวัตถุอ้างอิงขนาด:</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '10px', width: '60px', color: 'var(--text-muted)' }}>ซ้าย/ขวา (X):</span>
+                  <span style={{ fontSize: '10px', width: '60px', color: '#64748B' }}>ซ้าย/ขวา (X):</span>
                   <input type="range" min="-30" max="30" value={refObjectX} onChange={e => setRefObjectX(Number(e.target.value))} style={{ flex: 1 }} />
                   <span style={{ fontSize: '10px', width: '20px', textAlign: 'right' }}>{refObjectX}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '10px', width: '60px', color: 'var(--text-muted)' }}>หน้า/หลัง (Z):</span>
+                  <span style={{ fontSize: '10px', width: '60px', color: '#64748B' }}>หน้า/หลัง (Z):</span>
                   <input type="range" min="-30" max="30" value={refObjectZ} onChange={e => setRefObjectZ(Number(e.target.value))} style={{ flex: 1 }} />
                   <span style={{ fontSize: '10px', width: '20px', textAlign: 'right' }}>{refObjectZ}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '10px', width: '60px', color: 'var(--text-muted)' }}>หมุนทิศทาง:</span>
+                  <span style={{ fontSize: '10px', width: '60px', color: '#64748B' }}>หมุนทิศทาง:</span>
                   <input type="range" min="-180" max="180" value={refObjectRotation} onChange={e => setRefObjectRotation(Number(e.target.value))} style={{ flex: 1 }} />
                   <span style={{ fontSize: '10px', width: '30px', textAlign: 'right' }}>{refObjectRotation}°</span>
                 </div>
@@ -1457,7 +1457,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
             }}>
               <UploadCloud size={40} style={{ color: '#8E5431' }} />
               <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--primary)' }}>รออัปโหลดไฟล์ 3 มิติของคุณ</div>
-              <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>คลิกปุ่ม "อัปโหลด 3D" (.stl / .obj) ด้านล่าง เพื่อดูพรีวิวรูปทรงกระถางเสมือนจริง</div>
+              <div style={{ fontSize: '10px', color: '#64748B' }}>คลิกปุ่ม "อัปโหลด 3D" (.stl / .obj) ด้านล่าง เพื่อดูพรีวิวรูปทรงกระถางเสมือนจริง</div>
             </div>
           ) : (
             <div className="dressup-viewer-container">
