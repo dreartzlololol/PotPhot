@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import type { Shop } from '../data/shops';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { ZoomIn, ZoomOut, Compass, Layers, Sun, Moon, Globe, CloudSun } from 'lucide-react';
+import { ZoomIn, ZoomOut, Compass, Layers, Moon, Globe, CloudSun } from 'lucide-react';
 
 interface InteractiveMapProps {
   shops: Shop[];
