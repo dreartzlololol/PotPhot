@@ -28,7 +28,7 @@ import { calculateDistance } from './utils/geo';
 import { soundFX } from './utils/audioFX';
 
 const TransitionWrapper = ({ activeKey, direction, children }: any) => {
-  const [renders, setRenders] = useState([{ key: activeKey, element: children, direction }]);
+  const [renders, setRenders] = useState<{ key: any; element: any; direction: any; isExiting?: boolean }[]>([{ key: activeKey, element: children, direction }]);
   const [currentKey, setCurrentKey] = useState(activeKey);
 
   // Sync props without triggering transitions

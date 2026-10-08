@@ -13,10 +13,10 @@ interface InteractiveMapProps {
 
 const PHOTHARAM_CENTER: [number, number] = [13.665, 99.845];
 
-type MapStyleType = 'terracotta' | 'satellite' | 'moonlight';
+type MapStyleType = 'openstreetmap' | 'satellite' | 'moonlight';
 
 const TILE_LAYERS: Record<MapStyleType, { url: string; attr: string }> = {
-  terracotta: {
+  openstreetmap: {
     url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     attr: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   },
@@ -82,7 +82,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const orderMarkersRef = useRef<L.Marker[]>([]);
   const userMarkerRef = useRef<L.Marker | null>(null);
 
-  const [mapStyle, setMapStyle] = useState<MapStyleType>('terracotta');
+  const [mapStyle, setMapStyle] = useState<MapStyleType>('openstreetmap');
   const [showLayerMenu, setShowLayerMenu] = useState<boolean>(false);
 
   // Initialize Leaflet Map
@@ -99,7 +99,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       leafletMapRef.current = map;
 
       // Add initial Tile Layer
-      const initialConfig = TILE_LAYERS['terracotta'];
+      const initialConfig = TILE_LAYERS['openstreetmap'];
       tileLayerRef.current = L.tileLayer(initialConfig.url, {
         attribution: initialConfig.attr,
       }).addTo(map);
@@ -484,16 +484,16 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             🗺️ สไตล์แผนที่ (Map Styles):
           </div>
 
-          {/* Terracotta Craft Map */}
+          {/* OpenStreetMap Map */}
           <button
             type="button"
-            onClick={() => handleSwitchMapStyle('terracotta')}
+            onClick={() => handleSwitchMapStyle('openstreetmap')}
             style={{
               padding: '8px 12px',
               borderRadius: '12px',
-              border: mapStyle === 'terracotta' ? '2px solid var(--primary-light)' : '1px solid rgba(0,0,0,0.1)',
-              background: mapStyle === 'terracotta' ? 'rgba(45,122,71,0.12)' : 'white',
-              color: mapStyle === 'terracotta' ? 'var(--primary)' : 'var(--text-dark)',
+              border: mapStyle === 'openstreetmap' ? '2px solid var(--primary-light)' : '1px solid rgba(0,0,0,0.1)',
+              background: mapStyle === 'openstreetmap' ? 'rgba(45,122,71,0.12)' : 'white',
+              color: mapStyle === 'openstreetmap' ? 'var(--primary)' : 'var(--text-dark)',
               fontWeight: 700,
               fontSize: '12px',
               cursor: 'pointer',
@@ -502,8 +502,8 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
               gap: '8px',
             }}
           >
-            <Sun size={16} style={{ color: 'var(--gold)' }} />
-            <span>🌱 สยามดินเผา</span>
+            <Globe size={16} style={{ color: 'var(--primary)' }} />
+            <span>🌍 OpenStreetMap</span>
           </button>
 
           {/* Satellite Map */}

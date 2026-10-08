@@ -4,7 +4,7 @@ import { Flame, ShoppingCart, RotateCcw, ChevronLeft, ChevronRight, UploadCloud,
 import type { CustomPot } from '../pages/PotCollection';
 import { ThreeModelViewer, getDecalSVGDataURL } from './ThreeModelViewer';
 import { TetrisGame } from './TetrisGame';
-import ReactDOM from 'react-dom';
+import { createPortal } from 'react-dom';
 
 
 
@@ -1201,7 +1201,7 @@ export const PotMiniGame: React.FC<PotMiniGameProps> = ({ onComplete, onCancel }
     }
   };
 
-  return ReactDOM.createPortal(
+  return createPortal(
     <div style={{
       position: 'fixed',
       top: 0, left: 0, right: 0, bottom: 0,

@@ -100,7 +100,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           width: '100%',
         }}>
         
-        {tabs.map((tab, idx) => {
+        {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button

@@ -573,13 +573,14 @@ export const ShopDashboard: React.FC<ShopDashboardProps> = ({ user, onLogout, on
   const handleConfirmLocation = async () => {
     if (!tempLocation) return alert('กรุณาปักหมุดตำแหน่งร้านบนแผนที่');
     try {
+      const newIsOpen = user.shopLocation ? user.isOpen : true;
       const res = await fetch(`/api/shops/${user.id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isOpen: true, shopLocation: tempLocation, shopAddress: tempAddress })
+        body: JSON.stringify({ isOpen: newIsOpen, shopLocation: tempLocation, shopAddress: tempAddress })
       });
       if (res.ok) {
-        onUpdateUser({ ...user, isOpen: true, shopLocation: tempLocation, shopAddress: tempAddress });
+        onUpdateUser({ ...user, isOpen: newIsOpen, shopLocation: tempLocation, shopAddress: tempAddress });
         setShowMapModal(false);
       } else {
         alert('เกิดข้อผิดพลาดในการบันทึกพิกัด');
@@ -809,21 +810,39 @@ export const ShopDashboard: React.FC<ShopDashboardProps> = ({ user, onLogout, on
             </div>
 
             {user.shopLocation ? (
-              <button 
-                onClick={handleToggleShopStatus}
-                style={{ 
-                  padding: '8px 16px', 
-                  borderRadius: '8px', 
-                  background: user.isOpen ? '#E63946' : 'var(--primary)', 
-                  color: 'white', 
-                  border: 'none', 
-                  fontWeight: 600, 
-                  cursor: 'pointer',
-                  fontSize: '13px'
-                }}
-              >
-                {user.isOpen ? 'ปิดร้าน' : 'เปิดร้านอีกครั้ง'}
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  onClick={handleOpenShopClick}
+                  style={{ 
+                    padding: '8px 16px', 
+                    borderRadius: '8px', 
+                    background: 'var(--gold, #F59E0B)', 
+                    color: 'white', 
+                    border: 'none', 
+                    fontWeight: 600, 
+                    cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    fontSize: '13px'
+                  }}
+                >
+                  <MapPin size={16} /> ย้ายร้าน
+                </button>
+                <button 
+                  onClick={handleToggleShopStatus}
+                  style={{ 
+                    padding: '8px 16px', 
+                    borderRadius: '8px', 
+                    background: user.isOpen ? '#E63946' : 'var(--primary)', 
+                    color: 'white', 
+                    border: 'none', 
+                    fontWeight: 600, 
+                    cursor: 'pointer',
+                    fontSize: '13px'
+                  }}
+                >
+                  {user.isOpen ? 'ปิดร้าน' : 'เปิดร้านอีกครั้ง'}
+                </button>
+              </div>
             ) : (
               <button 
                 onClick={handleOpenShopClick}
@@ -1056,7 +1075,7 @@ export const ShopDashboard: React.FC<ShopDashboardProps> = ({ user, onLogout, on
                   cursor: 'pointer'
                 }}
               >
-                <Check size={18} /> ยืนยันการเปิดร้าน
+                <Check size={18} /> {user.shopLocation ? 'บันทึกที่ตั้งร้าน' : 'ยืนยันการเปิดร้าน'}
               </button>
             </div>
           </div>
